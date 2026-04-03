@@ -103,14 +103,14 @@ http://localhost:5000
 
 5. 运行安装脚本：
    ```powershell
-   .\install_windows.psl
+   .\install_windows.ps1
    ```
 
 6. 安装成功后，在浏览器访问 `http://localhost:5000`
 
 7. 如需卸载服务：
    ```powershell
-   .\uninstall_windows.psl
+   .\uninstall_windows.ps1
    ```
 
 ---
@@ -126,8 +126,8 @@ finance/
 ├── data.json             # 运行后自动生成，存储所有财务数据
 ├── install_linux.sh      # Linux 服务安装脚本（Systemd）
 ├── uninstall_linux.sh    # Linux 服务卸载脚本
-├── install_windows.psl   # Windows 服务安装脚本（计划任务）
-├── uninstall_windows.psl # Windows 服务卸载脚本
+├── install_windows.ps1   # Windows 服务安装脚本（计划任务）
+├── uninstall_windows.ps1 # Windows 服务卸载脚本
 └── README.md             # 项目说明文档
 ```
 
