@@ -421,12 +421,15 @@
         // ================= 2. 预算相关渲染 =================
         const categorySpend = {};
         let totalMonthSpend = 0;
+        let totalMonthLimit = 0;
 
         // 初始化基础花费
         for (const cat in appData.categories) {
             const initial = parseFloat(appData.categories[cat].initial || 0);
+            const limit = parseFloat(appData.categories[cat].limit || 0);
             categorySpend[cat] = initial;
             totalMonthSpend += initial;
+            totalMonthLimit += limit;
         }
 
         // 叠加本月动态开销
@@ -441,7 +444,9 @@
         });
 
         const totalMonthSpendDisplay = document.getElementById('totalMonthSpendDisplay');
-        if (totalMonthSpendDisplay) totalMonthSpendDisplay.innerText = `¥ ${formatCurrency(totalMonthSpend)}`;
+        if (totalMonthSpendDisplay) {
+            totalMonthSpendDisplay.innerHTML = `¥ ${formatCurrency(totalMonthSpend)} <span class="fs-5 text-muted fw-normal">/ ¥ ${formatCurrency(totalMonthLimit)}</span>`;
+        }
 
         // 渲染类别进度条
         const progressContainer = document.getElementById('budgetProgressContainer');
