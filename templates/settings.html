@@ -34,6 +34,29 @@
         <h2 class="m-0 mx-auto">⚙️ 类别与系统设置</h2>
         <a href="/?month={{ app_data.current_month }}" class="btn btn-fancy btn-settings-grad rounded-pill position-absolute px-4 py-2" style="right: 180px; top: 20px;">🔙 返回看板</a>
     </div>
+
+    <!-- 结转配置 -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card bg-primary bg-opacity-10">
+                <div class="card-body d-flex justify-content-between align-items-center">
+                    <div>
+                        <h5 class="mb-1">🔄 预算自动结转</h5>
+                        <p class="text-muted small mb-0">系统会自动计算上个月的余额，并将其补充到选定类别的本月上限中。</p>
+                    </div>
+                    <form action="/api/set_surplus_target" method="POST" class="d-flex gap-2">
+                        <select name="target" class="form-select form-select-sm" style="width: 200px;">
+                            <option value="">禁用结转</option>
+                            {% for cat in app_data.categories.keys() %}
+                            <option value="{{ cat }}" {% if cat == app_data.surplus_target %}selected{% endif %}>补充到: {{ cat }}</option>
+                            {% endfor %}
+                        </select>
+                        <button type="submit" class="btn btn-sm btn-primary px-3">保存配置</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
     
     <div class="row">
         <!-- 预算类别管理 -->
@@ -50,11 +73,12 @@
                         <div class="col-6"><input type="number" step="0.01" class="form-control form-control-sm" id="newCategoryInitial" name="initial" placeholder="固定花费" required></div>
                         <div class="col-12"><button type="submit" id="submitCategoryBtn" class="btn btn-sm btn-secondary w-100">添加预算类别</button></div>
                     </form>
-                    <ul class="list-group list-group-flush" id="categoryManageList">
+                    <ul class="list-group list-group-flush">
                         {% for cat, data in app_data.categories.items() %}
                         <li class="list-group-item d-flex justify-content-between align-items-center py-2">
                             <div>
-                                <span class="fw-bold">{{ cat }}</span><br>
+                                <span class="fw-bold">{{ cat }}</span>
+                                {% if cat == app_data.surplus_target %}<span class="badge bg-primary ms-1">结转目标</span>{% endif %}<br>
                                 <span class="text-muted small">上限: ¥{{ data.limit }} | 初始: ¥{{ data.initial }}</span>
                             </div>
                             <div class="d-flex gap-1">
@@ -78,7 +102,7 @@
                         <input type="text" class="form-control" name="name" placeholder="新资产类别" required>
                         <button type="submit" class="btn btn-secondary">添加</button>
                     </form>
-                    <ul class="list-group list-group-flush" id="assetManageList">
+                    <ul class="list-group list-group-flush">
                         {% for cat in app_data.assets.keys() %}
                         <li class="list-group-item d-flex justify-content-between align-items-center py-2">
                             <span>{{ cat }}</span>
@@ -94,7 +118,6 @@
 
 <script>
     const appData = {{ app_data | tojson }};
-
     window.editCat = (cat, limit, initial) => {
         document.getElementById('newCategoryInput').value = cat;
         document.getElementById('newCategoryLimit').value = limit;
@@ -104,7 +127,6 @@
         btn.innerText = '保存修改';
         btn.classList.replace('btn-secondary', 'btn-primary');
     };
-
     document.addEventListener('DOMContentLoaded', () => {
         const applyTheme = (theme) => {
             document.documentElement.setAttribute('data-bs-theme', theme);

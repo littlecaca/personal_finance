@@ -206,17 +206,12 @@
         }
         updateChart();
 
-        let totalMonthLimit = 0;
-        for (const cat in appData.categories) {
-            totalMonthLimit += appData.categories[cat].limit;
-        }
-        
-        document.getElementById('totalMonthSpendDisplay').innerHTML = `¥ ${formatCurrency(appData.total_month_spend)} <span class="fs-5 text-muted">/ ¥ ${formatCurrency(totalMonthLimit)}</span>`;
+        document.getElementById('totalMonthSpendDisplay').innerHTML = `¥ ${formatCurrency(appData.total_month_spend)} <span class="fs-5 text-muted">/ ¥ ${formatCurrency(appData.total_month_limit)}</span>`;
         
         const progContainer = document.getElementById('budgetProgressContainer');
         progContainer.innerHTML = '';
-        for (const cat in appData.categories) {
-            const limit = appData.categories[cat].limit;
+        for (const cat in appData.active_categories) {
+            const limit = appData.category_limits[cat] || appData.active_categories[cat].limit;
             const spent = appData.category_totals[cat] || 0;
             const percent = limit > 0 ? (spent/limit)*100 : 0;
             const colorClass = percent >= 100 ? 'bg-danger' : (percent >= 80 ? 'bg-warning' : 'bg-success');
@@ -233,6 +228,20 @@
                     <div class="progress-bar ${colorClass} progress-bar-striped" role="progressbar" style="width: ${displayPercent}%"></div>
                 </div>`;
             progContainer.appendChild(div);
+        }
+
+        // Update Expense Category Selector
+        const select = document.querySelector('select[name="category"]');
+        if (select) {
+            const currentVal = select.value;
+            select.innerHTML = '<option value="" disabled selected>选择类别</option>';
+            for (const cat in appData.active_categories) {
+                const opt = document.createElement('option');
+                opt.value = cat;
+                opt.innerText = cat;
+                select.appendChild(opt);
+            }
+            if (appData.active_categories[currentVal]) select.value = currentVal;
         }
     };
 
