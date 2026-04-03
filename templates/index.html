@@ -6,158 +6,119 @@
     <title>个人预算与资产追踪</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
-        /* 基础样式与过渡动画 */
-        body { 
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; 
-            transition: background-color 0.3s ease, color 0.3s ease;
-        }
-        .card { 
-            border: none; 
-            border-radius: 12px; 
-            box-shadow: 0 4px 6px rgba(0,0,0,0.05); 
-            margin-bottom: 24px; 
-            transition: background-color 0.3s ease, box-shadow 0.3s ease;
-        }
-        .card-header { 
-            border-bottom: 1px solid rgba(0,0,0,0.08); 
-            border-radius: 12px 12px 0 0 !important; 
-            font-weight: bold; 
-        }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; transition: background-color 0.3s ease, color 0.3s ease; }
+        .card { border: none; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 24px; transition: background-color 0.3s ease, box-shadow 0.3s ease; }
+        .card-header { border-bottom: 1px solid rgba(0,0,0,0.08); border-radius: 12px 12px 0 0 !important; font-weight: bold; }
         .total-spend-text { font-size: 2.2rem; font-weight: bold; color: #2c3e50; transition: color 0.3s ease;}
         
-        /* 浅色模式专属背景 */
+        /* 浅色模式 */
         [data-bs-theme="light"] body { background-color: #FBF8F1; }
         [data-bs-theme="light"] .card-header { background-color: #fff; }
 
-        /* 深色模式定制覆盖 */
+        /* 深色模式定制 */
         [data-bs-theme="dark"] body { background-color: #121212; }
-        [data-bs-theme="dark"] .card { background-color: #1e1e1e; box-shadow: 0 4px 6px rgba(0,0,0,0.2); }
-        [data-bs-theme="dark"] .card-header { background-color: #2c2c2c; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        [data-bs-theme="dark"] .card { background-color: #1e1e1e; }
         [data-bs-theme="dark"] .total-spend-text { color: #f8f9fa; }
-        [data-bs-theme="dark"] .text-muted { color: #adb5bd !important; }
-        
-        /* 修复暗色模式下表格标题栏的颜色 */
         [data-bs-theme="dark"] .table-light { 
             --bs-table-bg: #2c2c2c; 
             --bs-table-color: #e9ecef;
-            border-bottom-color: rgba(255,255,255,0.1);
+            --bs-table-border-color: #3d3d3d;
         }
-        
-        [data-bs-theme="dark"] .table { color: #e9ecef; }
-        [data-bs-theme="dark"] .table-hover>tbody>tr:hover>* { color: #fff; }
+        [data-bs-theme="dark"] .table { color: #e9ecef; border-color: #3d3d3d; }
 
-        /* 右上角按钮容器 */
-        .theme-toggle-wrapper {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            z-index: 1000;
+        /* 按钮通用动效 */
+        .btn-fancy {
+            border: none;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            font-weight: 500;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
         }
-        
-        /* 删除按钮样式微调 */
-        .delete-exp-btn { opacity: 0.5; transition: opacity 0.2s; }
-        tr:hover .delete-exp-btn { opacity: 1; }
-
-        /* 模糊渐变按钮特效 (极光/毛玻璃风格) */
-        .btn-blur-grad {
-            position: relative;
-            background: rgba(255, 255, 255, 0.4);
-            backdrop-filter: blur(8px);
-            -webkit-backdrop-filter: blur(8px);
-            border: 1px solid rgba(255, 255, 255, 0.6);
-            color: #2c3e50 !important;
-            overflow: hidden;
-            z-index: 1;
-            transition: all 0.3s ease;
-        }
-        .btn-blur-grad::before {
-            content: "";
-            position: absolute;
-            top: -50%; left: -50%; width: 200%; height: 200%;
-            /* 柔和的彩色圆锥渐变 */
-            background: conic-gradient(from 180deg at 50% 50%, rgba(100, 149, 237, 0.45) 0deg, rgba(255, 182, 193, 0.45) 120deg, rgba(144, 238, 144, 0.45) 240deg, rgba(100, 149, 237, 0.45) 360deg);
-            filter: blur(12px);
-            z-index: -1;
-            transition: transform 0.5s ease;
-        }
-        .btn-blur-grad:hover {
+        .btn-fancy:hover {
             transform: translateY(-2px);
-            box-shadow: 0 6px 15px rgba(0,0,0,0.08);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.15);
         }
-        .btn-blur-grad:hover::before {
-            transform: rotate(15deg) scale(1.1); /* 悬浮时的彩色流转动画 */
+        .btn-fancy:active { transform: translateY(0); }
+
+        /* 切换主题按钮 - 极光渐变 */
+        .btn-theme-grad {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white !important;
+        }
+        [data-bs-theme="dark"] .btn-theme-grad {
+            background: linear-gradient(135deg, #f6d365 0%, #fda085 100%);
+            color: #2c3e50 !important;
         }
 
-        /* 暗色模式下的模糊渐变按钮 */
-        [data-bs-theme="dark"] .btn-blur-grad {
-            background: rgba(30, 30, 30, 0.5);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            color: #f8f9fa !important;
+        /* 管理类别按钮 - 科技感渐变 */
+        .btn-settings-grad {
+            background: linear-gradient(135deg, #2af598 0%, #009efd 100%);
+            color: white !important;
         }
-        [data-bs-theme="dark"] .btn-blur-grad::before {
-            background: conic-gradient(from 180deg at 50% 50%, rgba(65, 105, 225, 0.5) 0deg, rgba(199, 21, 133, 0.5) 120deg, rgba(72, 209, 204, 0.5) 240deg, rgba(65, 105, 225, 0.5) 360deg);
-            filter: blur(15px);
-        }
+
+        .theme-toggle-wrapper { position: absolute; top: 20px; right: 20px; z-index: 1000; }
     </style>
 </head>
 <body class="position-relative">
 
-<!-- 主题切换按钮 -->
 <div class="theme-toggle-wrapper">
-    <button id="themeToggle" class="btn btn-blur-grad rounded-pill shadow-sm d-flex align-items-center gap-2">
-        <span id="themeIcon">🌙</span> 
-        <span id="themeText">暗色模式</span>
+    <button id="themeToggle" class="btn btn-fancy btn-theme-grad rounded-pill px-4 py-2 d-flex align-items-center gap-2">
+        <span id="themeIcon">🌙</span> <span id="themeText">暗色模式</span>
     </button>
 </div>
 
-<!-- 主视图 -->
 <div id="mainView" class="container py-5 mt-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h2 class="m-0 mx-auto">💸 个人预算与资产看板</h2>
-        <button id="btnOpenSettings" class="btn btn-blur-grad rounded-pill position-absolute shadow-sm px-3" style="right: 180px; top: 20px;">⚙️ 管理类别</button>
+        <button id="btnOpenSettings" class="btn btn-fancy btn-settings-grad rounded-pill position-absolute px-4 py-2" style="right: 180px; top: 20px;">⚙️ 管理类别</button>
     </div>
 
-    <!-- 第一行：预算与日常开销 -->
     <div class="row mb-4 align-items-stretch">
-        <!-- 左侧：预算看板 -->
         <div class="col-lg-5 mb-4 mb-lg-0">
             <div class="card h-100">
-                <div class="card-header">📈 本月预算与进度</div>
+                <div class="card-header">📈 {{ app_data.current_month }} 预算与进度</div>
                 <div class="card-body">
-                    <!-- 本月总开销 -->
                     <div class="text-center mb-4">
                         <h6 class="text-muted mb-1">本月总开销 (CNY)</h6>
                         <div class="total-spend-text text-danger" id="totalMonthSpendDisplay">¥ 0.00</div>
                     </div>
-                    
                     <hr class="mb-4">
-                    
-                    <!-- 各类别进度条容器 -->
-                    <div id="budgetProgressContainer">
-                        <!-- 进度条将由 JS 动态生成 -->
-                    </div>
+                    <div id="budgetProgressContainer"></div>
                 </div>
             </div>
         </div>
 
-        <!-- 右侧：日常开销记录 -->
         <div class="col-lg-7">
             <div class="card h-100">
-                <div class="card-header d-flex align-items-center">🛒 记录日常开销</div>
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <span>🛒 记录日常开销</span>
+                    <div class="d-flex align-items-center gap-2">
+                        <label class="small text-muted">切换月份:</label>
+                        <select class="form-select form-select-sm" style="width: auto;" onchange="location.href='/?month=' + this.value">
+                            {% for month in app_data.metadata.keys() | sort(reverse=True) %}
+                            <option value="{{ month }}" {% if month == app_data.current_month %}selected{% endif %}>{{ month }}</option>
+                            {% endfor %}
+                            {% if app_data.current_month not in app_data.metadata %}
+                            <option value="{{ app_data.current_month }}" selected>{{ app_data.current_month }}</option>
+                            {% endif %}
+                        </select>
+                    </div>
+                </div>
                 <div class="card-body">
-                    <form id="addExpenseForm" class="mb-4">
+                    <form id="addExpenseForm" class="mb-4" action="/api/add_expense" method="POST">
                         <div class="row g-2">
                             <div class="col-md-3">
-                                <select class="form-select" id="expenseCategory" required>
+                                <select class="form-select" name="category" required>
                                     <option value="" disabled selected>选择类别</option>
-                                    <!-- 类别选项由 JS 动态生成 -->
+                                    {% for cat in app_data.categories.keys() %}
+                                    <option value="{{ cat }}">{{ cat }}</option>
+                                    {% endfor %}
                                 </select>
                             </div>
                             <div class="col-md-3">
-                                <input type="number" step="0.01" class="form-control" id="expenseAmount" placeholder="金额 (¥)" required>
+                                <input type="number" step="0.01" class="form-control" name="amount" placeholder="金额 (¥)" required>
                             </div>
                             <div class="col-md-4">
-                                <input type="text" class="form-control" id="expenseDesc" placeholder="开销描述 (如：午餐)" required>
+                                <input type="text" class="form-control" name="description" placeholder="描述" required>
                             </div>
                             <div class="col-md-2">
                                 <button type="submit" class="btn btn-danger w-100">添加</button>
@@ -166,51 +127,73 @@
                     </form>
 
                     <h6 class="text-muted mb-3 d-flex justify-content-between align-items-center">
-                        <span>近期开销记录</span>
-                        <span class="badge bg-secondary" id="currentMonthBadge"></span>
+                        <span>近期开销记录 (第 {{ app_data.pagination.current_page }} 页)</span>
+                        <span class="badge bg-secondary">共 {{ app_data.pagination.total_count }} 条</span>
                     </h6>
-                    <div class="table-responsive" style="max-height: 600px; overflow-y: auto;">
+                    <div class="table-responsive">
                         <table class="table table-sm table-hover align-middle">
                             <thead class="table-light">
                                 <tr>
-                                    <th>时间</th>
-                                    <th>类别</th>
-                                    <th>描述</th>
-                                    <th class="text-end">金额</th>
-                                    <th class="text-center" style="width: 50px;">操作</th>
+                                    <th>时间</th><th>类别</th><th>描述</th><th class="text-end">金额</th><th class="text-center">操作</th>
                                 </tr>
                             </thead>
-                            <tbody id="expenseTableBody">
-                                <!-- 开销记录将由 JS 动态生成 -->
+                            <tbody>
+                                {% if not app_data.expenses %}
+                                <tr><td colspan="5" class="text-center text-muted py-3">本月暂无记录</td></tr>
+                                {% else %}
+                                {% for exp in app_data.expenses %}
+                                <tr>
+                                    <td class="text-muted small">{{ exp.date }}</td>
+                                    <td><span class="badge bg-light text-dark border">{{ exp.category }}</span></td>
+                                    <td>{{ exp.description }}</td>
+                                    <td class="text-end text-danger fw-medium">-¥{{ "{:,.2f}".format(exp.amount) }}</td>
+                                    <td class="text-center">
+                                        <a href="/api/delete_expense/{{ app_data.current_month }}/{{ (app_data.pagination.current_page - 1) * 8 + loop.index0 }}" class="text-danger">✖</a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                                {% endif %}
                             </tbody>
                         </table>
                     </div>
+
+                    <!-- Pagination -->
+                    {% if app_data.pagination.total_pages > 1 %}
+                    <nav class="mt-3">
+                        <ul class="pagination pagination-sm justify-content-center">
+                            <li class="page-item {% if not app_data.pagination.has_prev %}disabled{% endif %}">
+                                <a class="page-link" href="/?month={{ app_data.current_month }}&page={{ app_data.pagination.current_page - 1 }}">上一页</a>
+                            </li>
+                            {% for p in range(1, app_data.pagination.total_pages + 1) %}
+                            <li class="page-item {% if p == app_data.pagination.current_page %}active{% endif %}">
+                                <a class="page-link" href="/?month={{ app_data.current_month }}&page={{ p }}">{{ p }}</a>
+                            </li>
+                            {% endfor %}
+                            <li class="page-item {% if not app_data.pagination.has_next %}disabled{% endif %}">
+                                <a class="page-link" href="/?month={{ app_data.current_month }}&page={{ app_data.pagination.current_page + 1 }}">下一页</a>
+                            </li>
+                        </ul>
+                    </nav>
+                    {% endif %}
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- 第二行：资产看板 -->
+    <!-- Asset Section -->
     <div class="row">
         <div class="col-12">
             <div class="card mb-4">
                 <div class="card-header">📊 资产分布与更新</div>
                 <div class="card-body">
                     <div class="row align-items-center">
-                        <!-- 资产图表与总额 -->
                         <div class="col-md-5 d-flex flex-column align-items-center justify-content-center mb-4 mb-md-0">
                             <h6 class="text-muted mb-1">当前资产总额 (CNY)</h6>
                             <div class="total-spend-text text-success mb-3" id="totalAssetsDisplay">¥ 0.00</div>
-                            <div style="width: 100%; max-width: 240px;">
-                                <canvas id="assetChart"></canvas>
-                            </div>
+                            <div style="width: 100%; max-width: 240px;"><canvas id="assetChart"></canvas></div>
                         </div>
-                        
-                        <!-- 资产列表与增量更新 -->
                         <div class="col-md-7">
-                            <ul class="list-group list-group-flush" id="assetList">
-                                <!-- 资产列表将由 JS 动态生成 -->
-                            </ul>
+                            <ul class="list-group list-group-flush" id="assetList"></ul>
                         </div>
                     </div>
                 </div>
@@ -219,668 +202,182 @@
     </div>
 </div>
 
-<!-- 类别管理视图 (默认隐藏) -->
+<!-- Settings View -->
 <div id="settingsView" class="container py-5 mt-4" style="display: none;">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h2 class="m-0 mx-auto">⚙️ 类别与系统设置</h2>
-        <button id="btnBackToMain" class="btn btn-blur-grad rounded-pill position-absolute shadow-sm px-3" style="right: 180px; top: 20px;">🔙 返回看板</button>
+        <button id="btnBackToMain" class="btn btn-fancy btn-settings-grad rounded-pill position-absolute px-4 py-2" style="right: 180px; top: 20px;">🔙 返回看板</button>
     </div>
-    
     <div class="row">
-        <!-- 预算类别管理 -->
         <div class="col-md-6">
             <div class="card h-100">
-                <div class="card-header bg-warning bg-opacity-10">📋 预算类别管理</div>
+                <div class="card-header">📋 预算类别管理</div>
                 <div class="card-body">
-                    <form id="addCategoryForm" class="row g-2 mb-3">
-                        <div class="col-12">
-                            <input type="text" class="form-control form-control-sm" id="newCategoryInput" placeholder="类别名称 (如: 房租水电)" required>
-                        </div>
-                        <div class="col-6">
-                            <input type="number" step="0.01" class="form-control form-control-sm" id="newCategoryLimit" placeholder="每月上限 (¥)" required min="0.01">
-                        </div>
-                        <div class="col-6">
-                            <input type="number" step="0.01" class="form-control form-control-sm" id="newCategoryInitial" placeholder="固定花费 (¥)" required min="0">
-                        </div>
-                        <div class="col-12">
-                            <button type="submit" id="submitCategoryBtn" class="btn btn-sm btn-secondary w-100">添加预算类别</button>
-                        </div>
+                    <form id="addCategoryForm" class="row g-2 mb-3" action="/api/manage_category" method="POST">
+                        <input type="hidden" name="current_month" value="{{ app_data.current_month }}">
+                        <input type="hidden" id="oldCategoryName" name="old_name">
+                        <div class="col-12"><input type="text" class="form-control form-control-sm" id="newCategoryInput" name="name" placeholder="类别名称" required></div>
+                        <div class="col-6"><input type="number" step="0.01" class="form-control form-control-sm" id="newCategoryLimit" name="limit" placeholder="上限" required></div>
+                        <div class="col-6"><input type="number" step="0.01" class="form-control form-control-sm" id="newCategoryInitial" name="initial" placeholder="固定花费" required></div>
+                        <div class="col-12"><button type="submit" id="submitCategoryBtn" class="btn btn-sm btn-secondary w-100">添加预算类别</button></div>
                     </form>
-                    <ul class="list-group list-group-flush" id="categoryManageList">
-                        <!-- 预算管理列表将由 JS 动态生成 -->
-                    </ul>
+                    <ul class="list-group list-group-flush" id="categoryManageList"></ul>
                 </div>
             </div>
         </div>
-
-        <!-- 资产类别管理 -->
         <div class="col-md-6">
             <div class="card h-100">
-                <div class="card-header bg-success bg-opacity-10">💼 资产类别管理</div>
+                <div class="card-header">💼 资产类别管理</div>
                 <div class="card-body">
-                    <form id="addAssetCategoryForm" class="input-group input-group-sm mb-3">
-                        <input type="text" class="form-control" id="newAssetCategoryInput" placeholder="新资产类别 (如: 黄金)" required>
-                        <button type="submit" class="btn btn-secondary">添加资产类别</button>
+                    <form action="/api/add_asset_category" method="POST" class="input-group input-group-sm mb-3">
+                        <input type="text" class="form-control" name="name" placeholder="新资产类别" required>
+                        <button type="submit" class="btn btn-secondary">添加</button>
                     </form>
-                    <ul class="list-group list-group-flush" id="assetManageList">
-                        <!-- 资产管理列表将由 JS 动态生成 -->
-                    </ul>
+                    <ul class="list-group list-group-flush" id="assetManageList"></ul>
                 </div>
             </div>
         </div>
     </div>
 </div>
 
-<!-- 自定义提示弹窗 (代替 iframe 中被拦截的 alert/confirm) -->
-<div class="modal fade" id="customModal" tabindex="-1" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-centered modal-sm">
-    <div class="modal-content border-0 shadow">
-      <div class="modal-body text-center p-4">
-        <h6 class="mb-4 mt-2" id="customModalText">提示信息</h6>
-        <div class="d-flex justify-content-center gap-2">
-          <button type="button" class="btn btn-light px-3" data-bs-dismiss="modal" id="customModalCancel">取消</button>
-          <button type="button" class="btn btn-primary px-3" id="customModalConfirm">确定</button>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
+<form id="hiddenAssetForm" action="/api/update_asset" method="POST" style="display:none;">
+    <input type="hidden" name="category" id="hiddenAssetCategory">
+    <input type="hidden" name="action" id="hiddenAssetAction">
+    <input type="hidden" name="amount" id="hiddenAssetAmount">
+    <input type="hidden" name="current_month" value="{{ app_data.current_month }}">
+</form>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.css"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-    // --- 数据与状态管理 ---
-    const DEFAULT_DATA = {
-        assets: {
-            "股票 (Stocks)": 0,
-            "加密货币 (Crypto)": 0,
-            "银行存款 (Deposits)": 0,
-            "基金 (Funds)": 0
-        },
-        categories: {
-            "房租水电": { limit: 3000, initial: 2500 },
-            "餐饮美食": { limit: 2000, initial: 0 },
-            "交通出行": { limit: 500, initial: 0 },
-            "日常购物": { limit: 1000, initial: 0 }
-        },
-        expenses: []
-    };
-
-    let appData = {};
+    const appData = {{ app_data | tojson }};
     let assetChartInstance = null;
-    let currentEditCategory = null; // 用于追踪当前正在编辑的预算类别
 
-    // 自定义弹窗逻辑 (适配 iframe 环境与 Bootstrap 加载失败的降级)
-    let modalConfirmCallback = null;
-    
-    const hideCustomModal = () => {
-        const modalEl = document.getElementById('customModal');
-        if (!modalEl) return;
-        if (typeof bootstrap !== 'undefined') {
-            const modal = bootstrap.Modal.getInstance(modalEl) || bootstrap.Modal.getOrCreateInstance(modalEl);
-            modal.hide();
-        } else {
-            // 降级：原生移除类名与隐藏
-            modalEl.classList.remove('show');
-            modalEl.style.display = 'none';
-        }
-    };
+    const formatCurrency = (num) => parseFloat(num).toLocaleString('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
-    const customConfirm = (msg, callback, isAlert = false) => {
-        const modalText = document.getElementById('customModalText');
-        if (modalText) modalText.innerText = msg;
-        
-        modalConfirmCallback = callback;
-        
-        const modalCancelBtn = document.getElementById('customModalCancel');
-        if (modalCancelBtn) modalCancelBtn.style.display = isAlert ? 'none' : 'block';
-        
-        const modalEl = document.getElementById('customModal');
-        if (modalEl) {
-            if (typeof bootstrap !== 'undefined') {
-                const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
-                modal.show();
-            } else {
-                // 降级：如果 bootstrap JS 资源加载失败，使用原生 CSS 强制弹窗
-                modalEl.classList.add('show');
-                modalEl.style.display = 'block';
-                modalEl.style.backgroundColor = 'rgba(0,0,0,0.5)';
-            }
-        }
-    };
-
-    // 获取当前年月 (YYYY-MM)
-    const getCurrentYearMonth = () => {
-        const now = new Date();
-        return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
-    };
-
-    // --- 工具函数 ---
-    const formatCurrency = (num) => {
-        return parseFloat(num).toLocaleString('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-    };
-
-    const loadData = () => {
-        const saved = localStorage.getItem('budget_tracker_data');
-        if (saved) {
-            try {
-                appData = JSON.parse(saved);
-                // 兼容逻辑：补充可能缺失的结构
-                if (!appData.categories) appData.categories = JSON.parse(JSON.stringify(DEFAULT_DATA.categories));
-                if (!appData.assets) appData.assets = JSON.parse(JSON.stringify(DEFAULT_DATA.assets));
-                if (!appData.expenses) appData.expenses = [];
-            } catch (e) {
-                appData = JSON.parse(JSON.stringify(DEFAULT_DATA));
-            }
-        } else {
-            appData = JSON.parse(JSON.stringify(DEFAULT_DATA));
-        }
-    };
-
-    const saveData = () => {
-        localStorage.setItem('budget_tracker_data', JSON.stringify(appData));
-        updateUI();
-    };
-
-    // --- UI 更新逻辑 ---
     const updateUI = () => {
-        const currentYM = getCurrentYearMonth();
-        
-        const badge = document.getElementById('currentMonthBadge');
-        if (badge) badge.innerText = `${currentYM} 记录`;
-
-        // ================= 1. 资产相关渲染 =================
         const totalAssets = Object.values(appData.assets).reduce((sum, val) => sum + parseFloat(val), 0);
+        document.getElementById('totalAssetsDisplay').innerText = `¥ ${formatCurrency(totalAssets)}`;
         
-        const totalAssetsDisplay = document.getElementById('totalAssetsDisplay');
-        if (totalAssetsDisplay) totalAssetsDisplay.innerText = `¥ ${formatCurrency(totalAssets)}`;
-
         const assetList = document.getElementById('assetList');
-        if (assetList) {
-            assetList.innerHTML = '';
-            for (const [category, amount] of Object.entries(appData.assets)) {
-                const li = document.createElement('li');
-                li.className = 'list-group-item px-0 px-md-3 d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-2 border-bottom-0 border-top';
-                li.innerHTML = `
-                    <div class="text-truncate" style="max-width: 180px;" title="${category}">
-                        <span class="fw-bold">${category}</span><br>
-                        <span class="text-muted" style="font-size: 0.8rem;">¥${formatCurrency(amount)}</span>
-                    </div>
-                    <div class="d-flex align-items-center gap-1 mb-0">
-                        <input type="number" step="0.01" class="form-control form-control-sm asset-input" id="input-${category}" placeholder="额度" style="width: 90px;">
-                        <button class="btn btn-sm btn-outline-success action-btn px-2" data-action="add" data-category="${category}" title="增减(输负数)">+/-</button>
-                        <button class="btn btn-sm btn-outline-primary action-btn px-2" data-action="set" data-category="${category}" title="覆盖">设</button>
-                    </div>
-                `;
-                assetList.appendChild(li);
-            }
+        assetList.innerHTML = '';
+        for (const [cat, amount] of Object.entries(appData.assets)) {
+            const li = document.createElement('li');
+            li.className = 'list-group-item d-flex justify-content-between align-items-center border-top';
+            li.innerHTML = `
+                <div><span class="fw-bold">${cat}</span><br><span class="text-muted small">¥${formatCurrency(amount)}</span></div>
+                <div class="d-flex gap-1">
+                    <input type="number" step="0.01" class="form-control form-control-sm" id="input-${cat}" style="width: 80px;">
+                    <button class="btn btn-sm btn-outline-success px-2" onclick="submitAsset('${cat}', 'add')">+/-</button>
+                    <button class="btn btn-sm btn-outline-primary px-2" onclick="submitAsset('${cat}', 'set')">设</button>
+                </div>`;
+            assetList.appendChild(li);
+        }
+        updateChart();
+
+        let totalMonthLimit = 0;
+        for (const cat in appData.categories) {
+            totalMonthLimit += appData.categories[cat].limit;
         }
         
-        updateChart(); // 更新饼图
-
-        // ================= 2. 预算相关渲染 =================
-        const categorySpend = {};
-        let totalMonthSpend = 0;
-        let totalMonthLimit = 0;
-
-        // 初始化基础花费
+        document.getElementById('totalMonthSpendDisplay').innerHTML = `¥ ${formatCurrency(appData.total_month_spend)} <span class="fs-5 text-muted">/ ¥ ${formatCurrency(totalMonthLimit)}</span>`;
+        
+        const progContainer = document.getElementById('budgetProgressContainer');
+        progContainer.innerHTML = '';
         for (const cat in appData.categories) {
-            const initial = parseFloat(appData.categories[cat].initial || 0);
-            const limit = parseFloat(appData.categories[cat].limit || 0);
-            categorySpend[cat] = initial;
-            totalMonthSpend += initial;
-            totalMonthLimit += limit;
-        }
+            const limit = appData.categories[cat].limit;
+            const spent = appData.category_totals[cat] || 0;
+            const percent = limit > 0 ? (spent/limit)*100 : 0;
+            const colorClass = percent >= 100 ? 'bg-danger' : (percent >= 80 ? 'bg-warning' : 'bg-success');
+            const displayPercent = Math.min(percent, 100);
 
-        // 叠加本月动态开销
-        appData.expenses.forEach(exp => {
-            if (exp.date.startsWith(currentYM)) {
-                const amount = parseFloat(exp.amount);
-                totalMonthSpend += amount; 
-                if (categorySpend[exp.category] !== undefined) {
-                    categorySpend[exp.category] += amount;
-                }
-            }
-        });
-
-        const totalMonthSpendDisplay = document.getElementById('totalMonthSpendDisplay');
-        if (totalMonthSpendDisplay) {
-            totalMonthSpendDisplay.innerHTML = `¥ ${formatCurrency(totalMonthSpend)} <span class="fs-5 text-muted fw-normal">/ ¥ ${formatCurrency(totalMonthLimit)}</span>`;
-        }
-
-        // 渲染类别进度条
-        const progressContainer = document.getElementById('budgetProgressContainer');
-        if (progressContainer) {
-            progressContainer.innerHTML = '';
-            
-            if (Object.keys(appData.categories).length === 0) {
-                progressContainer.innerHTML = '<p class="text-center text-muted">暂无预算类别，请先添加。</p>';
-            }
-
-            for (const cat in appData.categories) {
-                const spent = categorySpend[cat];
-                const limit = parseFloat(appData.categories[cat].limit);
-                let percent = limit > 0 ? (spent / limit) * 100 : 0;
-                
-                let colorClass = 'bg-success';
-                let displayPercent = percent;
-                
-                if (percent >= 100) {
-                    colorClass = 'bg-danger';
-                    displayPercent = 100;
-                } else if (percent >= 80) {
-                    colorClass = 'bg-warning';
-                }
-
-                const div = document.createElement('div');
-                div.className = 'mb-3';
-                div.innerHTML = `
-                    <div class="d-flex justify-content-between small mb-1">
-                        <span class="fw-bold">${cat}</span>
-                        <span class="${percent >= 100 ? 'text-danger fw-bold' : 'text-muted'}">¥${formatCurrency(spent)} / ¥${formatCurrency(limit)}</span>
-                    </div>
-                    <div class="progress" style="height: 10px;">
-                        <div class="progress-bar ${colorClass} progress-bar-striped" role="progressbar" style="width: ${displayPercent}%;"></div>
-                    </div>
-                `;
-                progressContainer.appendChild(div);
-            }
-        }
-
-        // ================= 3. 开销记录渲染 =================
-        const select = document.getElementById('expenseCategory');
-        if (select) {
-            const currentSelection = select.value;
-            select.innerHTML = '<option value="" disabled selected>选择类别</option>';
-            for (const cat in appData.categories) {
-                const option = document.createElement('option');
-                option.value = cat;
-                option.innerText = cat;
-                select.appendChild(option);
-            }
-            if (appData.categories[currentSelection]) select.value = currentSelection;
-        }
-
-        const tbody = document.getElementById('expenseTableBody');
-        if (tbody) {
-            tbody.innerHTML = '';
-            if (appData.expenses.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted py-3">暂无开销记录</td></tr>';
-            } else {
-                appData.expenses.forEach((exp, index) => {
-                    const tr = document.createElement('tr');
-                    const isCurrentMonth = exp.date.startsWith(currentYM);
-                    tr.className = !isCurrentMonth ? 'opacity-50' : '';
-                    
-                    tr.innerHTML = `
-                        <td class="text-muted small">${exp.date}</td>
-                        <td><span class="badge bg-light text-dark border">${exp.category}</span></td>
-                        <td>${exp.description}</td>
-                        <td class="text-end text-danger fw-medium">-¥${formatCurrency(exp.amount)}</td>
-                        <td class="text-center">
-                            <button class="btn btn-sm btn-link text-danger p-0 delete-exp-btn border-0 text-decoration-none" data-index="${index}" title="删除记录">✖</button>
-                        </td>
-                    `;
-                    tbody.appendChild(tr);
-                });
-            }
+            const div = document.createElement('div');
+            div.className = 'mb-3';
+            div.innerHTML = `
+                <div class="d-flex justify-content-between small mb-1">
+                    <span class="fw-bold">${cat}</span>
+                    <span class="${percent >= 100 ? 'text-danger fw-bold' : 'text-muted'}">¥${formatCurrency(spent)} / ¥${formatCurrency(limit)}</span>
+                </div>
+                <div class="progress" style="height: 8px;">
+                    <div class="progress-bar ${colorClass} progress-bar-striped" role="progressbar" style="width: ${displayPercent}%"></div>
+                </div>`;
+            progContainer.appendChild(div);
         }
     };
 
-    // --- 绘制饼状图 ---
+    window.submitAsset = (cat, action) => {
+        const val = document.getElementById(`input-${cat}`).value;
+        if (!val) return;
+        document.getElementById('hiddenAssetCategory').value = cat;
+        document.getElementById('hiddenAssetAction').value = action;
+        document.getElementById('hiddenAssetAmount').value = val;
+        document.getElementById('hiddenAssetForm').submit();
+    };
+
     const updateChart = () => {
         const ctx = document.getElementById('assetChart');
         if (!ctx) return;
-
         const labels = Object.keys(appData.assets);
         const values = Object.values(appData.assets);
-        const theme = document.documentElement.getAttribute('data-bs-theme');
-        
-        const textColor = theme === 'dark' ? '#e9ecef' : '#2c3e50';
-        const borderColor = theme === 'dark' ? '#1e1e1e' : '#ffffff';
-
-        if (assetChartInstance) {
-            assetChartInstance.destroy();
-        }
-
-        // 如果没有资产数据，显示灰色占位
-        const hasData = values.some(v => v > 0);
-
+        if (assetChartInstance) assetChartInstance.destroy();
         assetChartInstance = new Chart(ctx, {
-            type: 'doughnut', // 换成环形图更现代
+            type: 'doughnut',
             data: {
-                labels: hasData ? labels : ['暂无资产'],
-                datasets: [{
-                    data: hasData ? values : [1],
-                    backgroundColor: hasData ? [
-                        '#0d6efd', '#198754', '#ffc107', '#dc3545', '#0dcaf0', '#6f42c1', '#fd7e14', '#20c997'
-                    ] : ['#e9ecef'],
-                    borderWidth: 2,
-                    borderColor: borderColor
-                }]
+                labels: labels,
+                datasets: [{ data: values, backgroundColor: ['#0d6efd', '#198754', '#ffc107', '#dc3545', '#0dcaf0'], borderWidth: 0 }]
             },
-            options: {
-                responsive: true,
-                cutout: '65%',
-                plugins: {
-                    legend: { 
-                        display: false // 为了节省空间，隐藏图例，依靠列表展示
-                    },
-                    tooltip: {
-                        enabled: hasData
-                    }
-                }
-            }
+            options: { responsive: true, cutout: '70%', plugins: { legend: { display: false } } }
         });
     };
 
-    // 重置编辑状态工具函数
-    const resetCategoryEditState = () => {
-        currentEditCategory = null;
-        const form = document.getElementById('addCategoryForm');
-        if (form) form.reset();
-        
-        const btn = document.getElementById('submitCategoryBtn');
-        if (btn) {
-            btn.innerText = '添加预算类别';
-            btn.classList.remove('btn-primary');
-            btn.classList.add('btn-secondary');
-        }
-    };
-
-    // --- 事件绑定 ---
     document.addEventListener('DOMContentLoaded', () => {
-        loadData();
-
-        // 绑定自定义弹窗的确认按钮
-        document.getElementById('customModalConfirm')?.addEventListener('click', () => {
-            if (modalConfirmCallback) modalConfirmCallback();
-            hideCustomModal();
-        });
-
-        // 绑定自定义弹窗的取消按钮（适用于降级无 Bootstrap 时）
-        document.getElementById('customModalCancel')?.addEventListener('click', () => {
-            hideCustomModal();
-        });
-
-        // --- 主题切换逻辑 ---
-        const themeToggleBtn = document.getElementById('themeToggle');
-        const htmlElement = document.documentElement;
-        const themeIcon = document.getElementById('themeIcon');
-        const themeText = document.getElementById('themeText');
-
         const applyTheme = (theme) => {
-            htmlElement.setAttribute('data-bs-theme', theme);
+            document.documentElement.setAttribute('data-bs-theme', theme);
             localStorage.setItem('budget_tracker_theme', theme);
-            
-            if (theme === 'dark') {
-                if (themeIcon) themeIcon.textContent = '☀️';
-                if (themeText) themeText.textContent = '浅色模式';
-            } else {
-                if (themeIcon) themeIcon.textContent = '🌙';
-                if (themeText) themeText.textContent = '暗色模式';
-            }
-            updateChart(); // 主题切换时重绘图表边界颜色
+            const isDark = theme === 'dark';
+            document.getElementById('themeIcon').textContent = isDark ? '☀️' : '🌙';
+            document.getElementById('themeText').textContent = isDark ? '浅色模式' : '暗色模式';
+            updateChart();
         };
+        applyTheme(localStorage.getItem('budget_tracker_theme') || 'light');
+        document.getElementById('themeToggle').onclick = () => applyTheme(document.documentElement.getAttribute('data-bs-theme') === 'dark' ? 'light' : 'dark');
 
-        const savedTheme = localStorage.getItem('budget_tracker_theme') || 'light';
-        applyTheme(savedTheme);
-
-        themeToggleBtn?.addEventListener('click', () => {
-            const currentTheme = htmlElement.getAttribute('data-bs-theme');
-            applyTheme(currentTheme === 'dark' ? 'light' : 'dark');
-        });
-
-        // --- 添加开销 ---
-        document.getElementById('addExpenseForm')?.addEventListener('submit', (e) => {
-            e.preventDefault();
-            const categorySelect = document.getElementById('expenseCategory');
-            const amountInput = document.getElementById('expenseAmount');
-            const descInput = document.getElementById('expenseDesc');
+        document.getElementById('btnOpenSettings').onclick = () => {
+            document.getElementById('mainView').style.display = 'none';
+            document.getElementById('settingsView').style.display = 'block';
             
-            if (!categorySelect || !amountInput || !descInput) return;
-            
-            const category = categorySelect.value;
-            const amount = parseFloat(amountInput.value);
-            const desc = descInput.value.trim();
-            
-            if (!isNaN(amount) && desc && category) {
-                const now = new Date();
-                const dateStr = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
-                
-                appData.expenses.unshift({
-                    date: dateStr,
-                    category: category,
-                    amount: amount,
-                    description: desc
-                });
-                
-                if (appData.expenses.length > 100) appData.expenses = appData.expenses.slice(0, 100);
-                
-                amountInput.value = '';
-                descInput.value = '';
-                saveData();
+            const catList = document.getElementById('categoryManageList');
+            catList.innerHTML = '';
+            for (const [cat, data] of Object.entries(appData.categories)) {
+                const li = document.createElement('li');
+                li.className = 'list-group-item d-flex justify-content-between align-items-center py-1';
+                li.innerHTML = `<span>${cat}</span><div class="d-flex gap-1">
+                    <button class="btn btn-sm btn-outline-primary px-2" onclick="editCat('${cat}')">编</button>
+                    <a href="/api/delete_category/${cat}" class="btn btn-sm btn-outline-danger px-2">删</a></div>`;
+                catList.appendChild(li);
             }
-        });
-
-        // --- 删除开销记录 (委托事件) ---
-        document.getElementById('expenseTableBody')?.addEventListener('click', (e) => {
-            const btn = e.target.closest('.delete-exp-btn');
-            if (btn) {
-                const index = btn.getAttribute('data-index');
-                customConfirm('确定要删除这条开销记录吗？这会导致本月统计数据重新计算。', () => {
-                    appData.expenses.splice(index, 1);
-                    saveData();
-                });
-            }
-        });
-
-        // --- 资产操作按钮 (委托事件) ---
-        document.getElementById('assetList')?.addEventListener('click', (e) => {
-            if (e.target.classList.contains('action-btn')) {
-                const action = e.target.getAttribute('data-action');
-                const category = e.target.getAttribute('data-category');
-                
-                const inputEl = document.getElementById(`input-${category}`);
-                if (!inputEl) return;
-                
-                const inputVal = inputEl.value;
-                const amount = parseFloat(inputVal) || 0;
-
-                if (action === 'add') {
-                    if (inputVal === '') return;
-                    appData.assets[category] += amount;
-                    if (appData.assets[category] < 0) appData.assets[category] = 0;
-                    saveData();
-                } else if (action === 'set') {
-                    if (inputVal === '') return;
-                    appData.assets[category] = amount < 0 ? 0 : amount;
-                    saveData();
-                }
-            }
-        });
-
-        // --- 视图切换与管理列表渲染 ---
-        const renderSettingsLists = () => {
-            // 渲染预算管理列表
-            const catManageList = document.getElementById('categoryManageList');
-            if (catManageList) {
-                catManageList.innerHTML = '';
-                for (const [cat, data] of Object.entries(appData.categories)) {
-                    const li = document.createElement('li');
-                    li.className = 'list-group-item px-2 py-1 d-flex justify-content-between align-items-center small';
-                    li.innerHTML = `
-                        <div>
-                            <span class="fw-bold">${cat}</span><br>
-                            <span class="text-muted" style="font-size:0.75rem">上限: ¥${data.limit} | 初始: ¥${data.initial}</span>
-                        </div>
-                        <div class="d-flex gap-1">
-                            <button class="btn btn-sm btn-outline-primary manage-edit-cat-btn py-0 px-2" data-category="${cat}">编</button>
-                            <button class="btn btn-sm btn-outline-danger manage-del-cat-btn py-0 px-2" data-category="${cat}">删</button>
-                        </div>
-                    `;
-                    catManageList.appendChild(li);
-                }
-            }
-
-            // 渲染资产管理列表
-            const assetManageList = document.getElementById('assetManageList');
-            if (assetManageList) {
-                assetManageList.innerHTML = '';
-                for (const cat of Object.keys(appData.assets)) {
-                    const li = document.createElement('li');
-                    li.className = 'list-group-item px-2 py-1 d-flex justify-content-between align-items-center small';
-                    li.innerHTML = `
-                        <span class="fw-bold">${cat}</span>
-                        <button class="btn btn-sm btn-outline-danger manage-del-asset-btn py-0 px-2" data-category="${cat}">删</button>
-                    `;
-                    assetManageList.appendChild(li);
-                }
+            const assetMList = document.getElementById('assetManageList');
+            assetMList.innerHTML = '';
+            for (const cat of Object.keys(appData.assets)) {
+                const li = document.createElement('li');
+                li.className = 'list-group-item d-flex justify-content-between align-items-center py-1';
+                li.innerHTML = `<span>${cat}</span><a href="/api/delete_asset_category/${cat}" class="btn btn-sm btn-outline-danger px-2">删</a>`;
+                assetMList.appendChild(li);
             }
         };
 
-        // 提交添加/编辑预算类别
-        document.getElementById('addCategoryForm')?.addEventListener('submit', (e) => {
-            e.preventDefault();
-            const inputCat = document.getElementById('newCategoryInput');
-            const inputLimit = document.getElementById('newCategoryLimit');
-            const inputInitial = document.getElementById('newCategoryInitial');
-            
-            if (!inputCat || !inputLimit || !inputInitial) return;
-            
-            const newCat = inputCat.value.trim();
-            const limit = parseFloat(inputLimit.value);
-            const initial = parseFloat(inputInitial.value);
-            
-            if (newCat && !isNaN(limit) && !isNaN(initial)) {
-                const saveLogic = () => {
-                    if (currentEditCategory) {
-                        // 正在编辑模式
-                        if (currentEditCategory !== newCat) {
-                            // 智能更新该分类下的所有历史开销记录的名字
-                            appData.expenses.forEach(exp => {
-                                if (exp.category === currentEditCategory) {
-                                    exp.category = newCat;
-                                }
-                            });
-                            // 移除旧名称
-                            delete appData.categories[currentEditCategory];
-                        }
-                        appData.categories[newCat] = { limit: limit, initial: initial };
-                        resetCategoryEditState();
-                    } else {
-                        // 新增模式
-                        appData.categories[newCat] = { limit: limit, initial: initial };
-                        document.getElementById('addCategoryForm').reset();
-                    }
-                    saveData();
-                    renderSettingsLists();
-                };
+        window.editCat = (cat) => {
+            const data = appData.categories[cat];
+            document.getElementById('newCategoryInput').value = cat;
+            document.getElementById('newCategoryLimit').value = data.limit;
+            document.getElementById('newCategoryInitial').value = data.initial;
+            document.getElementById('oldCategoryName').value = cat;
+            document.getElementById('submitCategoryBtn').innerText = '保存修改';
+            document.getElementById('submitCategoryBtn').classList.replace('btn-secondary', 'btn-primary');
+        };
 
-                if (currentEditCategory && currentEditCategory !== newCat && appData.categories[newCat] !== undefined) {
-                    customConfirm('目标类别名称已存在，是否覆盖更新其信息？', saveLogic);
-                } else if (!currentEditCategory && appData.categories[newCat] !== undefined) {
-                    customConfirm('该类别已存在，是否覆盖更新其上限和初始花费？', saveLogic);
-                } else {
-                    saveLogic();
-                }
-            }
-        });
+        document.getElementById('btnBackToMain').onclick = () => location.href = '/?month=' + appData.current_month;
 
-        // 委托处理预算类别的编辑和删除
-        document.getElementById('categoryManageList')?.addEventListener('click', (e) => {
-            // 点击编辑
-            if (e.target.classList.contains('manage-edit-cat-btn')) {
-                const category = e.target.getAttribute('data-category');
-                const data = appData.categories[category];
-                
-                // 将数据填入表单
-                const inputCat = document.getElementById('newCategoryInput');
-                const inputLimit = document.getElementById('newCategoryLimit');
-                const inputInitial = document.getElementById('newCategoryInitial');
-                
-                if (inputCat) inputCat.value = category;
-                if (inputLimit) inputLimit.value = data.limit;
-                if (inputInitial) inputInitial.value = data.initial;
-                
-                // 设置编辑状态和按钮样式
-                currentEditCategory = category;
-                const btn = document.getElementById('submitCategoryBtn');
-                if (btn) {
-                    btn.innerText = '保存修改';
-                    btn.classList.remove('btn-secondary');
-                    btn.classList.add('btn-primary');
-                }
-            }
-            
-            // 点击删除
-            const delBtn = e.target.closest('.manage-del-cat-btn');
-            if (delBtn) {
-                const category = delBtn.getAttribute('data-category');
-                customConfirm(`确定删除预算类别【${category}】吗？`, () => {
-                    delete appData.categories[category];
-                    
-                    // 如果删除的正是正在编辑的类别，则取消编辑状态
-                    if (currentEditCategory === category) {
-                        resetCategoryEditState();
-                    }
-                    
-                    saveData();
-                    renderSettingsLists();
-                });
-            }
-        });
-
-        // 添加资产类别
-        document.getElementById('addAssetCategoryForm')?.addEventListener('submit', (e) => {
-            e.preventDefault();
-            const input = document.getElementById('newAssetCategoryInput');
-            if (!input) return;
-            
-            const newCat = input.value.trim();
-            if (newCat && appData.assets[newCat] === undefined) {
-                appData.assets[newCat] = 0;
-                input.value = '';
-                saveData();
-                renderSettingsLists();
-            } else if (appData.assets[newCat] !== undefined) {
-                customConfirm('该资产类别已存在！', null, true);
-            }
-        });
-
-        // 删除资产类别 (委托)
-        document.getElementById('assetManageList')?.addEventListener('click', (e) => {
-            const delBtn = e.target.closest('.manage-del-asset-btn');
-            if (delBtn) {
-                const category = delBtn.getAttribute('data-category');
-                customConfirm(`确定删除资产类别【${category}】吗？对应资产数据将丢失。`, () => {
-                    delete appData.assets[category];
-                    saveData();
-                    renderSettingsLists();
-                });
-            }
-        });
-
-        // 切换视图绑定
-        document.getElementById('btnOpenSettings')?.addEventListener('click', () => {
-            const mainView = document.getElementById('mainView');
-            const settingsView = document.getElementById('settingsView');
-            if (mainView) mainView.style.display = 'none';
-            if (settingsView) settingsView.style.display = 'block';
-            resetCategoryEditState(); // 进入设置前重置编辑状态
-            renderSettingsLists();
-        });
-
-        document.getElementById('btnBackToMain')?.addEventListener('click', () => {
-            const settingsView = document.getElementById('settingsView');
-            const mainView = document.getElementById('mainView');
-            if (settingsView) settingsView.style.display = 'none';
-            if (mainView) mainView.style.display = 'block';
-            resetCategoryEditState(); // 离开设置时重置编辑状态
-            updateUI();
-        });
-
-        // 初始渲染 UI
         updateUI();
     });
 </script>
