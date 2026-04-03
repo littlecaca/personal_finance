@@ -10,12 +10,8 @@
         .card { border: none; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 24px; transition: background-color 0.3s ease, box-shadow 0.3s ease; }
         .card-header { border-bottom: 1px solid rgba(0,0,0,0.08); border-radius: 12px 12px 0 0 !important; font-weight: bold; }
         .total-spend-text { font-size: 2.2rem; font-weight: bold; color: #2c3e50; transition: color 0.3s ease;}
-        
-        /* 浅色模式 */
         [data-bs-theme="light"] body { background-color: #FBF8F1; }
         [data-bs-theme="light"] .card-header { background-color: #fff; }
-
-        /* 深色模式定制 */
         [data-bs-theme="dark"] body { background-color: #121212; }
         [data-bs-theme="dark"] .card { background-color: #1e1e1e; }
         [data-bs-theme="dark"] .total-spend-text { color: #f8f9fa; }
@@ -25,36 +21,11 @@
             --bs-table-border-color: #3d3d3d;
         }
         [data-bs-theme="dark"] .table { color: #e9ecef; border-color: #3d3d3d; }
-
-        /* 按钮通用动效 */
-        .btn-fancy {
-            border: none;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            font-weight: 500;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-        }
-        .btn-fancy:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(0,0,0,0.15);
-        }
-        .btn-fancy:active { transform: translateY(0); }
-
-        /* 切换主题按钮 - 极光渐变 */
-        .btn-theme-grad {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white !important;
-        }
-        [data-bs-theme="dark"] .btn-theme-grad {
-            background: linear-gradient(135deg, #f6d365 0%, #fda085 100%);
-            color: #2c3e50 !important;
-        }
-
-        /* 管理类别按钮 - 科技感渐变 */
-        .btn-settings-grad {
-            background: linear-gradient(135deg, #2af598 0%, #009efd 100%);
-            color: white !important;
-        }
-
+        .btn-fancy { border: none; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); font-weight: 500; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        .btn-fancy:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,0.15); }
+        .btn-theme-grad { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white !important; }
+        [data-bs-theme="dark"] .btn-theme-grad { background: linear-gradient(135deg, #f6d365 0%, #fda085 100%); color: #2c3e50 !important; }
+        .btn-settings-grad { background: linear-gradient(135deg, #2af598 0%, #009efd 100%); color: white !important; text-decoration: none; }
         .theme-toggle-wrapper { position: absolute; top: 20px; right: 20px; z-index: 1000; }
     </style>
 </head>
@@ -69,7 +40,7 @@
 <div id="mainView" class="container py-5 mt-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h2 class="m-0 mx-auto">💸 个人预算与资产看板</h2>
-        <button id="btnOpenSettings" class="btn btn-fancy btn-settings-grad rounded-pill position-absolute px-4 py-2" style="right: 180px; top: 20px;">⚙️ 管理类别</button>
+        <a href="/settings?month={{ app_data.current_month }}" class="btn btn-fancy btn-settings-grad rounded-pill position-absolute px-4 py-2" style="right: 180px; top: 20px;">⚙️ 管理类别</a>
     </div>
 
     <div class="row mb-4 align-items-stretch">
@@ -157,7 +128,6 @@
                         </table>
                     </div>
 
-                    <!-- Pagination -->
                     {% if app_data.pagination.total_pages > 1 %}
                     <nav class="mt-3">
                         <ul class="pagination pagination-sm justify-content-center">
@@ -180,7 +150,6 @@
         </div>
     </div>
 
-    <!-- Asset Section -->
     <div class="row">
         <div class="col-12">
             <div class="card mb-4">
@@ -196,44 +165,6 @@
                             <ul class="list-group list-group-flush" id="assetList"></ul>
                         </div>
                     </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Settings View -->
-<div id="settingsView" class="container py-5 mt-4" style="display: none;">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2 class="m-0 mx-auto">⚙️ 类别与系统设置</h2>
-        <button id="btnBackToMain" class="btn btn-fancy btn-settings-grad rounded-pill position-absolute px-4 py-2" style="right: 180px; top: 20px;">🔙 返回看板</button>
-    </div>
-    <div class="row">
-        <div class="col-md-6">
-            <div class="card h-100">
-                <div class="card-header">📋 预算类别管理</div>
-                <div class="card-body">
-                    <form id="addCategoryForm" class="row g-2 mb-3" action="/api/manage_category" method="POST">
-                        <input type="hidden" name="current_month" value="{{ app_data.current_month }}">
-                        <input type="hidden" id="oldCategoryName" name="old_name">
-                        <div class="col-12"><input type="text" class="form-control form-control-sm" id="newCategoryInput" name="name" placeholder="类别名称" required></div>
-                        <div class="col-6"><input type="number" step="0.01" class="form-control form-control-sm" id="newCategoryLimit" name="limit" placeholder="上限" required></div>
-                        <div class="col-6"><input type="number" step="0.01" class="form-control form-control-sm" id="newCategoryInitial" name="initial" placeholder="固定花费" required></div>
-                        <div class="col-12"><button type="submit" id="submitCategoryBtn" class="btn btn-sm btn-secondary w-100">添加预算类别</button></div>
-                    </form>
-                    <ul class="list-group list-group-flush" id="categoryManageList"></ul>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-6">
-            <div class="card h-100">
-                <div class="card-header">💼 资产类别管理</div>
-                <div class="card-body">
-                    <form action="/api/add_asset_category" method="POST" class="input-group input-group-sm mb-3">
-                        <input type="text" class="form-control" name="name" placeholder="新资产类别" required>
-                        <button type="submit" class="btn btn-secondary">添加</button>
-                    </form>
-                    <ul class="list-group list-group-flush" id="assetManageList"></ul>
                 </div>
             </div>
         </div>
@@ -341,43 +272,6 @@
         };
         applyTheme(localStorage.getItem('budget_tracker_theme') || 'light');
         document.getElementById('themeToggle').onclick = () => applyTheme(document.documentElement.getAttribute('data-bs-theme') === 'dark' ? 'light' : 'dark');
-
-        document.getElementById('btnOpenSettings').onclick = () => {
-            document.getElementById('mainView').style.display = 'none';
-            document.getElementById('settingsView').style.display = 'block';
-            
-            const catList = document.getElementById('categoryManageList');
-            catList.innerHTML = '';
-            for (const [cat, data] of Object.entries(appData.categories)) {
-                const li = document.createElement('li');
-                li.className = 'list-group-item d-flex justify-content-between align-items-center py-1';
-                li.innerHTML = `<span>${cat}</span><div class="d-flex gap-1">
-                    <button class="btn btn-sm btn-outline-primary px-2" onclick="editCat('${cat}')">编</button>
-                    <a href="/api/delete_category/${cat}" class="btn btn-sm btn-outline-danger px-2">删</a></div>`;
-                catList.appendChild(li);
-            }
-            const assetMList = document.getElementById('assetManageList');
-            assetMList.innerHTML = '';
-            for (const cat of Object.keys(appData.assets)) {
-                const li = document.createElement('li');
-                li.className = 'list-group-item d-flex justify-content-between align-items-center py-1';
-                li.innerHTML = `<span>${cat}</span><a href="/api/delete_asset_category/${cat}" class="btn btn-sm btn-outline-danger px-2">删</a>`;
-                assetMList.appendChild(li);
-            }
-        };
-
-        window.editCat = (cat) => {
-            const data = appData.categories[cat];
-            document.getElementById('newCategoryInput').value = cat;
-            document.getElementById('newCategoryLimit').value = data.limit;
-            document.getElementById('newCategoryInitial').value = data.initial;
-            document.getElementById('oldCategoryName').value = cat;
-            document.getElementById('submitCategoryBtn').innerText = '保存修改';
-            document.getElementById('submitCategoryBtn').classList.replace('btn-secondary', 'btn-primary');
-        };
-
-        document.getElementById('btnBackToMain').onclick = () => location.href = '/?month=' + appData.current_month;
-
         updateUI();
     });
 </script>

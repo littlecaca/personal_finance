@@ -9,7 +9,6 @@ DATA_DIR = 'data'
 CONFIG_FILE = os.path.join(DATA_DIR, 'config.json')
 METADATA_FILE = os.path.join(DATA_DIR, 'metadata.json')
 
-# Ensure data directory exists
 if not os.path.exists(DATA_DIR):
     os.makedirs(DATA_DIR)
 
@@ -49,25 +48,18 @@ def update_metadata(year_month, count):
     meta["counts"][year_month] = count
     save_json(METADATA_FILE, meta)
 
-@app.route('/')
-def index():
+def get_app_data(target_month, page=1, per_page=8):
     config = load_json(CONFIG_FILE, DEFAULT_CONFIG)
     meta = load_json(METADATA_FILE, {"counts": {}})
-    
-    target_month = request.args.get('month', datetime.now().strftime("%Y-%m"))
-    page = int(request.args.get('page', 1))
-    per_page = 8
     
     month_data = load_json(get_month_file(target_month), {"expenses": []})
     all_expenses = month_data["expenses"]
     
-    # Calculate totals for the month (not just the page)
     category_totals = {}
     for cat, details in config["categories"].items():
         category_totals[cat] = float(details.get("initial", 0))
     
     total_month_spend = sum(category_totals.values())
-    
     for exp in all_expenses:
         cat = exp.get("category")
         amount = float(exp.get("amount", 0))
@@ -82,7 +74,7 @@ def index():
     start_idx = (page - 1) * per_page
     paginated_expenses = all_expenses[start_idx:start_idx + per_page]
     
-    app_data = {
+    return {
         "assets": config["assets"],
         "categories": config["categories"],
         "category_totals": category_totals,
@@ -98,8 +90,19 @@ def index():
             "has_prev": page > 1
         }
     }
-    
+
+@app.route('/')
+def index():
+    target_month = request.args.get('month', datetime.now().strftime("%Y-%m"))
+    page = int(request.args.get('page', 1))
+    app_data = get_app_data(target_month, page)
     return render_template('index.html', app_data=app_data)
+
+@app.route('/settings')
+def settings():
+    target_month = request.args.get('month', datetime.now().strftime("%Y-%m"))
+    app_data = get_app_data(target_month)
+    return render_template('settings.html', app_data=app_data)
 
 @app.route('/api/add_expense', methods=['POST'])
 def add_expense():
@@ -112,14 +115,7 @@ def add_expense():
     
     month_file = get_month_file(year_month)
     month_data = load_json(month_file, {"expenses": []})
-    
-    month_data['expenses'].insert(0, {
-        "date": date_str,
-        "amount": amount,
-        "description": description,
-        "category": category
-    })
-    
+    month_data['expenses'].insert(0, {"date": date_str, "amount": amount, "description": description, "category": category})
     save_json(month_file, month_data)
     update_metadata(year_month, len(month_data['expenses']))
     return redirect(url_for('index', month=year_month))
@@ -158,6 +154,9 @@ def manage_category():
         if old_name != name: del config['categories'][old_name]
     config['categories'][name] = {"limit": limit, "initial": initial}
     save_json(CONFIG_FILE, config)
+    
+    if request.form.get('from_page') == 'settings':
+        return redirect(url_for('settings', month=request.form.get('current_month')))
     return redirect(url_for('index', month=request.form.get('current_month')))
 
 @app.route('/api/delete_category/<name>')
@@ -166,6 +165,9 @@ def delete_category(name):
     if name in config['categories']:
         del config['categories'][name]
         save_json(CONFIG_FILE, config)
+    
+    if request.args.get('from_page') == 'settings':
+        return redirect(url_for('settings'))
     return redirect(url_for('index'))
 
 @app.route('/api/add_asset_category', methods=['POST'])
@@ -175,6 +177,9 @@ def add_asset_category():
     if name and name not in config['assets']:
         config['assets'][name] = 0
         save_json(CONFIG_FILE, config)
+    
+    if request.form.get('from_page') == 'settings':
+        return redirect(url_for('settings'))
     return redirect(url_for('index'))
 
 @app.route('/api/delete_asset_category/<name>')
@@ -183,6 +188,9 @@ def delete_asset_category(name):
     if name in config['assets']:
         del config['assets'][name]
         save_json(CONFIG_FILE, config)
+    
+    if request.args.get('from_page') == 'settings':
+        return redirect(url_for('settings'))
     return redirect(url_for('index'))
 
 if __name__ == '__main__':
