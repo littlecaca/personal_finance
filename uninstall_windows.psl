@@ -1,0 +1,33 @@
+
+<#
+.SYNOPSIS
+财务看板应用 - Windows 计划任务服务卸载脚本
+#>
+
+# 确保以管理员权限运行
+$isAdmin = ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
+
+if (-not $isAdmin) {
+    Write-Host "错误: 请以管理员身份运行 PowerShell，然后再次执行此脚本。" -ForegroundColor Red
+    Pause
+    Exit
+}
+
+$TaskName = "FinanceTrackerService"
+
+Write-Host "正在停止并移除后台服务..." -ForegroundColor Cyan
+
+# 尝试停止正在运行的任务
+try {
+    Stop-ScheduledTask -TaskName $TaskName -ErrorAction SilentlyContinue
+} catch {}
+
+# 取消注册（删除）计划任务
+try {
+    Unregister-ScheduledTask -TaskName $TaskName -Confirm:$false -ErrorAction Stop
+    Write-Host "✅ 卸载成功！后台服务已移除。" -ForegroundColor Green
+} catch {
+    Write-Host "未找到名为 $TaskName 的服务，或已卸载。" -ForegroundColor Yellow
+}
+
+Pause

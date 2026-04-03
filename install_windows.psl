@@ -1,0 +1,51 @@
+<#
+.SYNOPSIS
+财务看板应用 - Windows 计划任务服务安装脚本
+
+.DESCRIPTION
+此脚本会使用 Windows 计划任务（Task Scheduler）将该应用注册为隐式后台服务，
+并在系统启动时自动运行内置的 Python HTTP 服务器。
+#>
+
+# 确保以管理员权限运行
+$isAdmin = ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
+
+if (-not $isAdmin) {
+    Write-Host "错误: 请以管理员身份运行 PowerShell，然后再次执行此脚本。" -ForegroundColor Red
+    Pause
+    Exit
+}
+
+# 检查 Python 是否可用
+try {
+    $pythonVersion = python --version 2>&1
+} catch {
+    Write-Host "错误: 未在环境变量中找到 python，请确保已安装 Python 并添加到了 PATH。" -ForegroundColor Red
+    Pause
+    Exit
+}
+
+$AppDir = Get-Location
+$TaskName = "FinanceTrackerService"
+
+Write-Host "正在注册后台服务（计划任务）..." -ForegroundColor Cyan
+
+# 设置在启动时隐藏执行 Python HTTP Server
+$Action = New-ScheduledTaskAction -Execute "powershell.exe" -Argument "-WindowStyle Hidden -Command `"cd '$AppDir'; python -m http.server 5000`""
+# 设置触发器：随系统启动（开机自启）
+$Trigger = New-ScheduledTaskTrigger -AtStartup
+# 设置运行级别为最高，并允许按需运行
+$Principal = New-ScheduledTaskPrincipal -UserId "SYSTEM" -LogonType ServiceAccount -RunLevel Highest
+
+# 注册并覆盖同名任务
+Register-ScheduledTask -TaskName $TaskName -Action $Action -Trigger $Trigger -Principal $Principal -Force | Out-Null
+
+# 立即启动任务
+Start-ScheduledTask -TaskName $TaskName
+
+Write-Host "================================================================" -ForegroundColor Green
+Write-Host "✅ 安装成功！" -ForegroundColor Green
+Write-Host "应用已注册为后台任务并在系统启动时自动运行。" -ForegroundColor Green
+Write-Host "您现在可以在浏览器中访问: http://localhost:5000" -ForegroundColor Green
+Write-Host "================================================================" -ForegroundColor Green
+Pause
