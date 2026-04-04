@@ -15,10 +15,10 @@ if not os.path.exists(DATA_DIR):
 DEFAULT_CONFIG = {
     "assets": {"股票 (Stocks)": 0, "加密货币 (Crypto)": 0, "银行存款 (Deposits)": 0, "基金 (Funds)": 0},
     "categories": {
-        "房租水电": { "limit": 3000, "initial": 2500 },
-        "餐饮美食": { "limit": 2000, "initial": 0 },
-        "交通出行": { "limit": 500, "initial": 0 },
-        "日常购物": { "limit": 1000, "initial": 0 }
+        "房租水电": { "limit": 3000, "initial": 2500, "rollover": False },
+        "餐饮美食": { "limit": 2000, "initial": 0, "rollover": True },
+        "交通出行": { "limit": 500, "initial": 0, "rollover": False },
+        "日常购物": { "limit": 1000, "initial": 0, "rollover": False }
     },
     "surplus_target": ""
 }
@@ -37,12 +37,9 @@ def get_month_file(year_month):
     return os.path.join(DATA_DIR, f"{year_month}.json")
 
 def check_and_process_surplus():
-    """全量追溯结转，优先使用月份文件内的预算快照"""
+    """精细化全量追溯：支持类别独立结转和全局合并结转"""
     config = load_json(CONFIG_FILE, DEFAULT_CONFIG)
-    target_cat = config.get("surplus_target")
-    if not target_cat or target_cat not in config["categories"]:
-        return
-
+    global_target = config.get("surplus_target")
     meta = load_json(METADATA_FILE, {"counts": {}, "rolled_over_months": []})
     current_month_str = datetime.now().strftime("%Y-%m")
     recorded_months = sorted(meta["counts"].keys())
@@ -54,28 +51,39 @@ def check_and_process_surplus():
             if not os.path.exists(month_file): continue
 
             m_data = load_json(month_file, {"expenses": [], "adjustments": {}, "budget_snapshot": {}})
+            # 优先使用快照，确保结转逻辑基于当时各类别属性
+            ref_cats = m_data.get("budget_snapshot") if m_data.get("budget_snapshot") else config["categories"]
             
-            # --- 核心改进：优先使用快照 ---
-            # 如果该月有快照，说明它记录了当时的上限；否则使用当前配置作为兜底
-            ref_categories = m_data.get("budget_snapshot") if m_data.get("budget_snapshot") else config["categories"]
-            
-            m_limit = sum(float(c["limit"]) for c in ref_categories.values()) + sum(m_data.get("adjustments", {}).values())
-            m_spend = sum(float(c["initial"]) for c in ref_categories.values()) + sum(e["amount"] for e in m_data["expenses"])
-            
-            surplus = m_limit - m_spend
-            
-            if surplus > 0:
-                dt = datetime.strptime(month_str, "%Y-%m")
-                next_month_dt = (dt.replace(day=28) + timedelta(days=4)).replace(day=1)
-                next_month_str = next_month_dt.strftime("%Y-%m")
+            # 计算该月各类别实际支出（固定 + 动态）
+            cat_spends = {cat: float(d["initial"]) for cat, d in ref_cats.items()}
+            for exp in m_data["expenses"]:
+                if exp["category"] in cat_spends:
+                    cat_spends[exp["category"]] += float(exp["amount"])
+
+            # 准备下个月的结转数据
+            dt = datetime.strptime(month_str, "%Y-%m")
+            next_month_str = ((dt.replace(day=28) + timedelta(days=4)).replace(day=1)).strftime("%Y-%m")
+            next_file = get_month_file(next_month_str)
+            next_data = load_json(next_file, {"expenses": [], "adjustments": {}, "budget_snapshot": {}})
+            if "adjustments" not in next_data: next_data["adjustments"] = {}
+
+            for cat, details in ref_cats.items():
+                # 该类别总上限 = 基础上限 + 该月获得的结转补充
+                cat_limit = float(details["limit"]) + float(m_data.get("adjustments", {}).get(cat, 0))
+                cat_surplus = cat_limit - cat_spends.get(cat, 0)
                 
-                next_file = get_month_file(next_month_str)
-                next_data = load_json(next_file, {"expenses": [], "adjustments": {}, "budget_snapshot": {}})
-                next_data.setdefault("adjustments", {})[target_cat] = next_data["adjustments"].get(target_cat, 0) + surplus
-                save_json(next_file, next_data)
-                
-                if next_month_str not in meta["counts"]:
-                    meta["counts"][next_month_str] = len(next_data["expenses"])
+                if cat_surplus > 0:
+                    # 判断结转路径
+                    if details.get("rollover"):
+                        # 1. 类别开启了独立结转：给下个月的自己
+                        next_data["adjustments"][cat] = next_data["adjustments"].get(cat, 0) + cat_surplus
+                    elif global_target and global_target in config["categories"]:
+                        # 2. 类别未开启：给全局目标
+                        next_data["adjustments"][global_target] = next_data["adjustments"].get(global_target, 0) + cat_surplus
+
+            save_json(next_file, next_data)
+            if next_month_str not in meta["counts"]:
+                meta["counts"][next_month_str] = len(next_data["expenses"])
 
             meta.setdefault("rolled_over_months", []).append(month_str)
             save_json(METADATA_FILE, meta)
@@ -84,8 +92,6 @@ def get_app_data(target_month, page=1, per_page=8):
     config = load_json(CONFIG_FILE, DEFAULT_CONFIG)
     meta = load_json(METADATA_FILE, {"counts": {}, "rolled_over_months": []})
     month_data = load_json(get_month_file(target_month), {"expenses": [], "adjustments": {}, "budget_snapshot": {}})
-    
-    # 获取该月应使用的预算标准（优先用快照）
     active_categories = month_data.get("budget_snapshot") if month_data.get("budget_snapshot") else config["categories"]
     
     category_totals = {cat: float(d["initial"]) for cat, d in active_categories.items()}
@@ -101,8 +107,8 @@ def get_app_data(target_month, page=1, per_page=8):
     
     return {
         "assets": config["assets"],
-        "categories": config["categories"], # 设置页面用当前的
-        "active_categories": active_categories, # 主页显示用当时的
+        "categories": config["categories"],
+        "active_categories": active_categories,
         "category_totals": category_totals,
         "category_limits": category_limits,
         "total_month_spend": sum(category_totals.values()),
@@ -141,13 +147,9 @@ def add_expense():
     ym = now.strftime("%Y-%m")
     m_file = get_month_file(ym)
     m_data = load_json(m_file, {"expenses": [], "adjustments": {}, "budget_snapshot": {}})
-    
-    # 记录/更新当前月份的预算快照
     m_data["budget_snapshot"] = config["categories"]
-    
     m_data['expenses'].insert(0, {"date": now.strftime("%Y-%m-%d %H:%M"), "amount": float(request.form['amount']), "description": request.form['description'], "category": request.form['category']})
     save_json(m_file, m_data)
-    
     meta = load_json(METADATA_FILE, {"counts": {}})
     meta.setdefault("counts", {})[ym] = len(m_data['expenses'])
     save_json(METADATA_FILE, meta)
@@ -179,13 +181,19 @@ def update_asset():
 @app.route('/api/manage_category', methods=['POST'])
 def manage_category():
     config = load_json(CONFIG_FILE, DEFAULT_CONFIG)
-    name, limit, initial, old_name = request.form['name'], float(request.form['limit']), float(request.form['initial']), request.form.get('old_name')
+    name = request.form['name']
+    limit = float(request.form['limit'])
+    initial = float(request.form['initial'])
+    # 处理布尔值：Checkbox 选中时有值，未选中时无此 Key
+    rollover = True if request.form.get('rollover') else False
+    old_name = request.form.get('old_name')
+    
     if old_name and old_name in config['categories']:
         if old_name != name: del config['categories'][old_name]
-    config['categories'][name] = {"limit": limit, "initial": initial}
+    
+    config['categories'][name] = {"limit": limit, "initial": initial, "rollover": rollover}
     save_json(CONFIG_FILE, config)
     
-    # 如果修改的是当前月，立即同步快照
     ym = datetime.now().strftime("%Y-%m")
     m_file = get_month_file(ym)
     if os.path.exists(m_file):
