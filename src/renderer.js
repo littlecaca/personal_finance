@@ -379,8 +379,10 @@ document.addEventListener('DOMContentLoaded', () => {
         const text = document.getElementById('themeText');
         if (icon) icon.textContent = isDark ? '☀️' : '🌙';
         if (text) text.textContent = isDark ? '浅色模式' : '暗色模式';
-        updateAssetChart();
-        updateHistoryChart();
+        if (appData) {
+            updateAssetChart();
+            updateHistoryChart();
+        }
     };
     
     const savedTheme = localStorage.getItem('budget_tracker_theme') || 'light';
