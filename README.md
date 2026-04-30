@@ -1,6 +1,6 @@
-# 💸 个人预算与资产看板 (Personal Finance & Asset Tracker)
+# 💸 finance paper-金融手账
 
-一个基于 Python Flask 的轻量级个人财务追踪 Web 应用。通过本地运行的后端服务，将您的资产与开销数据持久化存储于本地 JSON 文件中，无需注册账号、无需联网、无数据上传风险。
+一个基于 Electron 构建的完全离线、高颜值的个人财务追踪桌面应用。无需注册账号、无需联网、没有任何数据上传风险。数据百分之百存储在您的本地电脑中。
 
 ---
 
@@ -8,144 +8,60 @@
 
 | 功能 | 描述 |
 |------|------|
-| 📊 资产追踪 | 支持股票、加密货币、银行存款、基金等多类别资产的金额录入与汇总 |
-| 🎯 目标进度 | 设置财务目标（默认 500 万），实时显示当前总资产占目标的完成进度 |
-| 🛒 开销记录 | 快速添加日常消费账单（金额 + 描述），自动记录时间，保留最近 50 条 |
-| 💾 本地持久化 | 所有数据以 JSON 格式存储于本地文件 `data.json`，重启服务后数据不丢失 |
-| 🔒 完全离线 | 应用完全运行在您自己的设备上，无任何数据上传至云端 |
+| 📊 资产追踪 | 支持股票、加密货币、银行存款、基金等多类别资产的金额录入与饼图汇总 |
+| 📈 趋势图表 | 采用独特的非线性时间轴算法，直观展示历史资产走势，防止近期数据拥挤 |
+| 🛒 极速记账 | 支持秒级开销记录，带有毛玻璃动态视效与快捷键盘交互 |
+| 🔄 智能结转 | 支持灵活的“独立结转”或“汇总兜底结转”，让上月余额为下月加码 |
+| 🎨 双模主题 | 精心调配的“暖阳奶油”与“热可可”双色主题，原生支持拖拽调整类别顺序 |
+| 🔒 绝对安全 | 纯本地 Electron 架构，断网可用，所有数据持久化为本地 `JSON` 文件 |
 
 ---
 
-## 🛠️ 运行条件 (Requirements)
+## 🛠️ 构建与打包说明
 
-- **操作系统**：Windows 10/11 或任意主流 Linux 发行版（Ubuntu、Debian、CentOS 等）
-- **Python**：Python 3.7 或更高版本（需已添加到系统 PATH）
-- **依赖库**：Flask（见下方安装步骤）
-- **浏览器**：Chrome、Edge、Firefox、Safari 等现代浏览器
+本项目基于 `electron-forge` 构建，包含完整的构建工具链。
 
----
+### 1. 开发环境运行
 
-## 🚀 安装与运行步骤
-
-### 方法一：直接运行 Flask（推荐开发/日常使用）
-
-**第一步：安装依赖**
+确保您已安装 Node.js 和 npm。
 
 ```bash
-pip install flask
+# 安装依赖
+npm install
+
+# 启动开发服务器
+npm start
 ```
 
-**第二步：启动应用**
+### 2. 生成绿色免安装包 (ZIP)
+
+如果不想安装，希望直接双击运行：
 
 ```bash
-python app.py
+npm run make
 ```
 
-**第三步：在浏览器中访问**
+生成的 ZIP 压缩包和免安装二进制文件将出现在 `out/make/zip/win32/x64/` 目录下。
 
-```
-http://localhost:5000
+### 3. 生成安装程序 (Setup.exe)
+
+生成带有完整安装引导的安装程序：
+
+```bash
+npm run make
 ```
 
-> 首次运行时，程序会自动在当前目录创建 `data.json` 文件用于存储数据。
+生成的安装程序会出现在 `out/make/squirrel.windows/x64/` 目录下，文件名为简洁的 `finance paper.exe`。
 
 ---
 
-### 方法二：作为系统后台服务运行（适合长期挂载）
+## 📂 数据存储说明
 
-通过提供的自动化脚本，可将应用注册为系统后台守护进程，实现**开机自启动**，随时通过浏览器访问 `http://localhost:5000`。
+为了保证数据的绝对安全和便携性，本应用的所有数据文件均存储在安装目录或解压目录下的 `data/` 文件夹中：
 
-> **注意**：以下脚本使用 Python 内置的 `http.server` 模块以静态模式运行，适合将 `index.html` 作为纯前端独立部署的场景。若需完整的 Flask 后端功能（数据持久化到 `data.json`），请使用方法一手动启动。
+- `config.json`：存储全局配置、自定义类别及基础设置
+- `history.json`：存储每日资产打卡记录用于绘制趋势图
+- `metadata.json`：系统运行元数据
+- `YYYY-MM.json`：每个月的详细账单记录与预算快照
 
-#### 🐧 Linux 系统（Systemd）
-
-1. 将项目文件放在同一目录中，打开终端进入该目录
-
-2. 赋予脚本执行权限：
-   ```bash
-   chmod +x install_linux.sh uninstall_linux.sh
-   ```
-
-3. 以 root 权限运行安装脚本：
-   ```bash
-   sudo ./install_linux.sh
-   ```
-
-4. 安装成功后，在浏览器访问 `http://localhost:5000`
-
-5. 常用服务管理命令：
-   ```bash
-   sudo systemctl status finance-tracker.service   # 查看状态
-   sudo systemctl stop finance-tracker.service     # 停止服务
-   sudo systemctl restart finance-tracker.service  # 重启服务
-   ```
-
-6. 如需卸载服务：
-   ```bash
-   sudo ./uninstall_linux.sh
-   ```
-
-#### 🪟 Windows 系统（计划任务）
-
-1. 将项目文件放在同一目录中
-
-2. 右键点击"开始"按钮，选择 **"终端 (管理员)"** 或 **"Windows PowerShell (管理员)"**
-
-3. 进入项目目录：
-   ```powershell
-   cd C:\路径\到\您的\文件夹
-   ```
-
-4. 若系统限制脚本执行，先运行：
-   ```powershell
-   Set-ExecutionPolicy RemoteSigned -Scope CurrentUser
-   ```
-
-5. 运行安装脚本：
-   ```powershell
-   .\install_windows.ps1
-   ```
-
-6. 安装成功后，在浏览器访问 `http://localhost:5000`
-
-7. 如需卸载服务：
-   ```powershell
-   .\uninstall_windows.ps1
-   ```
-
----
-
-## 📂 项目结构
-
-```
-finance/
-│
-├── app.py                # Flask 后端主程序（路由、数据读写逻辑）
-├── templates/
-│   └── index.html        # 前端页面模板（UI、图表、表单）
-├── data.json             # 运行后自动生成，存储所有财务数据
-├── install_linux.sh      # Linux 服务安装脚本（Systemd）
-├── uninstall_linux.sh    # Linux 服务卸载脚本
-├── install_windows.ps1   # Windows 服务安装脚本（计划任务）
-├── uninstall_windows.ps1 # Windows 服务卸载脚本
-└── README.md             # 项目说明文档
-```
-
----
-
-## 🔌 API 路由说明
-
-| 路由 | 方法 | 功能 |
-|------|------|------|
-| `/` | GET | 主页，展示资产总览与开销列表 |
-| `/update_assets` | POST | 更新各类别资产金额 |
-| `/add_expense` | POST | 添加一条新的开销记录 |
-
----
-
-## ⚠️ 注意事项
-
-- **数据文件**：`data.json` 是所有数据的唯一存储来源，请妥善保管，不要手动删除。
-- **备份建议**：如需迁移到其他设备，只需复制 `data.json` 文件即可保留全部历史数据。
-- **开销条数**：系统自动只保留最近 **50 条**开销记录，超出部分会被自动丢弃，请定期手动导出备份。
-- **端口占用**：默认使用 `5000` 端口，如有冲突，可修改 `app.py` 末尾的 `port=5000` 参数。
+**💡 备份建议**：如需迁移数据到新电脑或重装系统，只需完整复制 `data/` 文件夹即可完美恢复所有记录！

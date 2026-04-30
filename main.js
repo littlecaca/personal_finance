@@ -366,6 +366,7 @@ function createWindow() {
   const win = new BrowserWindow({
     width: 1280,
     height: 900,
+    title: 'finance paper-金融手账',
     autoHideMenuBar: true,
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),

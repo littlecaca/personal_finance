@@ -1,7 +1,8 @@
 {
-  "name": "finance",
+  "name": "finance-paper",
+  "productName": "finance paper",
   "version": "1.0.0",
-  "description": "一个基于 Python Flask 的轻量级个人财务追踪 Web 应用。通过本地运行的后端服务，将您的资产与开销数据持久化存储于本地 JSON 文件中，无需注册账号、无需联网、无数据上传风险。",
+  "description": "一个基于 Electron 的完全离线个人财务追踪桌面应用。本地运行，数据持久化于本地，无数据上传风险。",
   "main": "main.js",
   "scripts": {
     "start": "electron-forge start",
