@@ -298,10 +298,47 @@ const updateHistoryChart = () => {
     const ctx = document.getElementById('historyChart');
     if (!ctx || !appData.history || appData.history.length === 0) return;
     
-    const chartData = appData.history.map(item => ({
-        x: new Date(item.date.replace(' ', 'T')).getTime(),
+    const t_vals = appData.history.map(item => new Date(item.date.replace(' ', 'T')).getTime());
+    const n = t_vals.length;
+    let X_vals = [];
+    
+    if (n < 2) {
+        X_vals = t_vals.slice();
+    } else {
+        const t0 = t_vals[0];
+        const tn = t_vals[n - 1];
+        const c = (tn - t0) / (n - 1);
+        
+        X_vals.push(t0);
+        let currentX = t0;
+        
+        for (let i = 1; i < n; i++) {
+            const dt = t_vals[i] - t_vals[i-1];
+            const p_bar = tn === t0 ? 0 : ((t_vals[i] + t_vals[i-1]) / 2 - t0) / (tn - t0);
+            
+            // 非线性调整因子：距离当前越近 (p_bar -> 1)，权重 w 越大，越倾向于均匀分布 (c)
+            // 距离当前越远 (p_bar -> 0)，权重 w 越小，越倾向于真实时间间距 (dt)
+            const w = Math.pow(p_bar, 2); 
+            const dX = (1 - w) * dt + w * c;
+            
+            currentX += dX;
+            X_vals.push(currentX);
+        }
+        
+        // 将虚拟坐标缩放回原始的时间跨度范围，以保持图表刻度合理
+        const Xn = X_vals[n - 1];
+        if (Xn !== t0) {
+            for (let i = 1; i < n; i++) {
+                X_vals[i] = t0 + (X_vals[i] - t0) * (tn - t0) / (Xn - t0);
+            }
+        }
+    }
+    
+    const chartData = appData.history.map((item, i) => ({
+        x: X_vals[i],
         y: item.total,
-        originalDate: item.date
+        originalDate: item.date,
+        realTime: t_vals[i]
     }));
     
     if (historyChartInstance) historyChartInstance.destroy();
@@ -359,7 +396,22 @@ const updateHistoryChart = () => {
                         autoSkip: true, 
                         maxTicksLimit: 10,
                         callback: (value) => {
-                            const d = new Date(value);
+                            let realT = value;
+                            if (n > 1 && value > X_vals[0] && value < X_vals[n-1]) {
+                                for (let i = 1; i < n; i++) {
+                                    if (value <= X_vals[i]) {
+                                        const ratio = (value - X_vals[i-1]) / (X_vals[i] - X_vals[i-1]);
+                                        realT = t_vals[i-1] + ratio * (t_vals[i] - t_vals[i-1]);
+                                        break;
+                                    }
+                                }
+                            } else if (value <= X_vals[0]) {
+                                realT = t_vals[0];
+                            } else if (value >= X_vals[n-1]) {
+                                realT = t_vals[n-1];
+                            }
+                            
+                            const d = new Date(realT);
                             return `${d.getMonth() + 1}-${d.getDate()}`;
                         }
                     } 
