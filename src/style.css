@@ -106,12 +106,13 @@ body {
 /* Inputs and Selects styling */
 .form-control, .form-select {
     background-color: rgba(255, 255, 255, 0.5);
-    border: 1px solid rgba(255,255,255,0.3);
+    border: 1px solid rgba(0, 0, 0, 0.1); /* Subtle dark border for visibility */
     backdrop-filter: blur(4px);
     transition: all 0.3s ease;
 }
 .form-control:focus, .form-select:focus {
     background-color: rgba(255, 255, 255, 0.8);
+    border-color: rgba(13, 110, 253, 0.4);
     box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.15);
 }
 
