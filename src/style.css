@@ -22,6 +22,28 @@ body {
     color: #eae0d5;
 }
 
+/* Floral Pattern Overlay */
+body::before {
+    content: '';
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background-image: url('background.png');
+    background-repeat: repeat;
+    background-size: 400px auto;
+    z-index: -1;
+    pointer-events: none;
+}
+
+[data-bs-theme="light"] body::before {
+    opacity: 0.06;
+    mix-blend-mode: multiply;
+}
+
+[data-bs-theme="dark"] body::before {
+    opacity: 0.03;
+    filter: invert(1) contrast(80%);
+}
+
 /* Glassmorphism Cards */
 .card {
     border: 1px solid rgba(255, 255, 255, 0.15);
