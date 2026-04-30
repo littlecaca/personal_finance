@@ -60,14 +60,19 @@ function formatDateTime(date) {
 }
 
 // --- Core Logic ---
+let lastSurplusCheckMonth = null;
+
 function checkAndProcessSurplus() {
+  const currentMonthStr = formatMonth(new Date());
+  if (lastSurplusCheckMonth === currentMonthStr) return; // Already checked this month in this session
+
   const config = loadJson(CONFIG_FILE, DEFAULT_CONFIG);
   const globalTarget = config.surplus_target;
   let meta = loadJson(METADATA_FILE, { counts: {}, rolled_over_months: [] });
-  const currentMonthStr = formatMonth(new Date());
   const recordedMonths = Object.keys(meta.counts).sort();
   const rolledOver = new Set(meta.rolled_over_months || []);
 
+  let changed = false;
   for (const monthStr of recordedMonths) {
     if (monthStr < currentMonthStr && !rolledOver.has(monthStr)) {
       const monthFile = getMonthFile(monthStr);
@@ -122,9 +127,14 @@ function checkAndProcessSurplus() {
 
       if (!meta.rolled_over_months) meta.rolled_over_months = [];
       meta.rolled_over_months.push(monthStr);
-      saveJson(METADATA_FILE, meta);
+      changed = true;
     }
   }
+  
+  if (changed) {
+    saveJson(METADATA_FILE, meta);
+  }
+  lastSurplusCheckMonth = currentMonthStr;
 }
 
 function getAppData(targetMonth, page = 1, perPage = 8) {
