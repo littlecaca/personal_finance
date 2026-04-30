@@ -47,15 +47,12 @@ body::before {
 }
 
 [data-bs-theme="light"] body::before {
-    opacity: 0.2;
-    mix-blend-mode: multiply;
-    filter: grayscale(100%) contrast(1.5) brightness(1.1);
+    opacity: 0.15;
 }
 
 [data-bs-theme="dark"] body::before {
-    opacity: 0.06;
-    mix-blend-mode: screen;
-    filter: invert(1) grayscale(100%) contrast(1.5) brightness(1.1);
+    opacity: 0.05;
+    filter: invert(1);
 }
 
 /* Glassmorphism Cards */
