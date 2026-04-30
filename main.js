@@ -315,6 +315,9 @@ function createWindow() {
   // win.webContents.openDevTools();
 }
 
+app.commandLine.appendSwitch('ignore-certificate-errors');
+app.commandLine.appendSwitch('allow-insecure-localhost');
+
 app.whenReady().then(() => {
   createWindow();
 
