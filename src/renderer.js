@@ -60,7 +60,7 @@ const renderDashboard = async (month, page) => {
 
     // Expense Category Selector
     const expenseCatSelect = document.getElementById('expenseCategory');
-    expenseCatSelect.innerHTML = '<option value="" disabled selected>选择类别</option>';
+    expenseCatSelect.innerHTML = '';
     for (const cat in appData.active_categories) {
         const opt = document.createElement('option');
         opt.value = cat;
