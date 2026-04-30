@@ -1,6 +1,12 @@
 <!DOCTYPE html>
-<html lang="zh-CN" data-bs-theme="light">
+<html lang="zh-CN">
 <head>
+    <script>
+        (function() {
+            const savedTheme = localStorage.getItem('budget_tracker_theme') || 'light';
+            document.documentElement.setAttribute('data-bs-theme', savedTheme);
+        })();
+    </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>finance paper-金融手账</title>
@@ -18,7 +24,7 @@
 
 <div class="container py-5 mt-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2 class="m-0 mx-auto">⚙️ 类别与系统设置</h2>
+        <h2 class="m-0 mx-auto">⚙️ 系统设置</h2>
         <button id="backToDashboard" class="btn btn-fancy btn-settings-grad rounded-pill position-absolute px-4 py-2" style="right: 180px; top: 20px;">🔙 返回看板</button>
     </div>
 

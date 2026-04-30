@@ -369,11 +369,16 @@ function createWindow() {
     title: 'finance paper-金融手账',
     icon: path.join(__dirname, 'logo.ico'),
     autoHideMenuBar: true,
+    show: false,
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       contextIsolation: true,
       nodeIntegration: false,
     },
+  });
+
+  win.once('ready-to-show', () => {
+    win.show();
   });
 
   win.loadFile(path.join(__dirname, 'src', 'index.html'));
