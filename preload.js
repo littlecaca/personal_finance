@@ -11,5 +11,6 @@ contextBridge.exposeInMainWorld('financeAPI', {
   deleteAssetCategory: (name) => ipcRenderer.invoke('delete-asset-category', name),
   recordAssetSnapshot: () => ipcRenderer.invoke('record-asset-snapshot'),
   deleteHistoryPoint: (index) => ipcRenderer.invoke('delete-history-point', index),
-  setSurplusTarget: (target) => ipcRenderer.invoke('set-surplus-target', target)
+  setSurplusTarget: (target) => ipcRenderer.invoke('set-surplus-target', target),
+  setTheme: (theme) => ipcRenderer.invoke('set-theme', theme)
 });

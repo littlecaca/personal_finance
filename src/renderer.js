@@ -444,6 +444,12 @@ document.addEventListener('DOMContentLoaded', () => {
         const text = document.getElementById('themeText');
         if (icon) icon.textContent = isDark ? '☀️' : '🌙';
         if (text) text.textContent = isDark ? '浅色模式' : '暗色模式';
+        
+        // 同步通知后端修改原生窗口的顶栏颜色
+        if (window.financeAPI && window.financeAPI.setTheme) {
+            window.financeAPI.setTheme(theme);
+        }
+
         if (appData) {
             updateAssetChart();
             updateHistoryChart();

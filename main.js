@@ -299,6 +299,12 @@ ipcMain.handle('set-surplus-target', async (event, target) => {
     return { success: true };
 });
 
+ipcMain.handle('set-theme', async (event, theme) => {
+    const { nativeTheme } = require('electron');
+    nativeTheme.themeSource = theme;
+    return { success: true };
+});
+
 // --- Window Management ---
 function createWindow() {
   const win = new BrowserWindow({
