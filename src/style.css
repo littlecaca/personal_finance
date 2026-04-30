@@ -41,19 +41,21 @@ body::before {
     top: 0; left: 0; right: 0; bottom: 0;
     background-image: url('background.png');
     background-repeat: repeat;
-    background-size: 400px auto;
+    background-size: 800px auto;
     z-index: -1;
     pointer-events: none;
 }
 
 [data-bs-theme="light"] body::before {
-    opacity: 0.15;
+    opacity: 0.2;
     mix-blend-mode: multiply;
+    filter: grayscale(100%) contrast(1.5) brightness(1.1);
 }
 
 [data-bs-theme="dark"] body::before {
-    opacity: 0.05;
-    filter: invert(1) contrast(80%);
+    opacity: 0.06;
+    mix-blend-mode: screen;
+    filter: invert(1) grayscale(100%) contrast(1.5) brightness(1.1);
 }
 
 /* Glassmorphism Cards */
