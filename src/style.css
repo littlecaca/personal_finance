@@ -1,9 +1,13 @@
+html {
+    min-height: 100vh;
+    animation: gradientBG 15s ease infinite;
+}
+
 body {
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-    transition: background-color 0.5s ease, color 0.5s ease;
+    transition: color 0.5s ease;
     min-height: 100vh;
-    background-size: 400% 400%;
-    animation: gradientBG 15s ease infinite;
+    background-color: transparent !important;
 }
 
 @keyframes gradientBG {
@@ -12,13 +16,21 @@ body {
     100% { background-position: 0% 50%; }
 }
 
-[data-bs-theme="light"] body {
+[data-bs-theme="light"] html {
     background: linear-gradient(-45deg, #fdfbf7, #fff9eb, #faf2e1, #fff9eb);
+    background-size: 400% 400%;
+}
+
+[data-bs-theme="light"] body {
     color: #4a3f35;
 }
 
-[data-bs-theme="dark"] body {
+[data-bs-theme="dark"] html {
     background: linear-gradient(-45deg, #2a2624, #3b3330, #2d2825, #3b3330);
+    background-size: 400% 400%;
+}
+
+[data-bs-theme="dark"] body {
     color: #eae0d5;
 }
 
@@ -35,12 +47,12 @@ body::before {
 }
 
 [data-bs-theme="light"] body::before {
-    opacity: 0.06;
+    opacity: 0.15;
     mix-blend-mode: multiply;
 }
 
 [data-bs-theme="dark"] body::before {
-    opacity: 0.03;
+    opacity: 0.05;
     filter: invert(1) contrast(80%);
 }
 
