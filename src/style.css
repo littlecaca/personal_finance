@@ -132,7 +132,23 @@ body {
 .list-group-item {
     background-color: transparent !important;
     border-color: rgba(0,0,0,0.05);
+    transition: background-color 0.2s ease;
 }
 [data-bs-theme="dark"] .list-group-item {
     border-color: rgba(255,255,255,0.05);
+}
+.list-group-item:hover {
+    background-color: rgba(0,0,0,0.02) !important;
+}
+[data-bs-theme="dark"] .list-group-item:hover {
+    background-color: rgba(255,255,255,0.02) !important;
+}
+
+/* Hover-only buttons in lists */
+.list-group-item .item-actions {
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+.list-group-item:hover .item-actions {
+    opacity: 1;
 }

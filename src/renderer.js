@@ -208,9 +208,9 @@ const renderSettings = async () => {
                 <br>
                 <span class="text-muted small ms-4">上限: ¥${data.limit} | 固定: ¥${data.initial}</span>
             </div>
-            <div class="d-flex gap-1">
-                <button class="btn btn-sm btn-outline-primary px-2" onclick="editCat('${cat}', ${data.limit}, ${data.initial}, ${data.rollover})">编</button>
-                <button class="btn btn-sm btn-outline-danger px-2" onclick="deleteCategory('${cat}')">删</button>
+            <div class="d-flex gap-1 item-actions">
+                <button class="btn btn-sm btn-outline-primary px-2" onclick="editCat('${cat}', ${data.limit}, ${data.initial}, ${data.rollover})">编辑</button>
+                <button class="btn btn-sm btn-outline-danger px-2" onclick="deleteCategory('${cat}')">✖</button>
             </div>`;
         catList.appendChild(li);
     }
@@ -233,7 +233,9 @@ const renderSettings = async () => {
                 <span class="text-muted me-2">☰</span>
                 <span class="fw-bold">${cat}</span>
             </div>
-            <button class="btn btn-sm btn-outline-danger px-2" onclick="deleteAssetCategory('${cat}')">删</button>`;
+            <div class="item-actions">
+                <button class="btn btn-sm btn-outline-danger px-2" onclick="deleteAssetCategory('${cat}')">✖</button>
+            </div>`;
         assetCatList.appendChild(li);
     }
     setupDraggableList('assetCategoryList', async (newOrder) => {
