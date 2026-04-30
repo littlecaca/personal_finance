@@ -298,8 +298,11 @@ const updateHistoryChart = () => {
     const ctx = document.getElementById('historyChart');
     if (!ctx || !appData.history || appData.history.length === 0) return;
     
-    const labels = appData.history.map(item => item.date.split(' ')[0]);
-    const values = appData.history.map(item => item.total);
+    const chartData = appData.history.map(item => ({
+        x: new Date(item.date.replace(' ', 'T')).getTime(),
+        y: item.total,
+        originalDate: item.date
+    }));
     
     if (historyChartInstance) historyChartInstance.destroy();
     
@@ -310,10 +313,9 @@ const updateHistoryChart = () => {
     historyChartInstance = new Chart(ctx, {
         type: 'line',
         data: {
-            labels: labels,
             datasets: [{
                 label: '总资产 (CNY)',
-                data: values,
+                data: chartData,
                 borderColor: primaryColor,
                 backgroundColor: primaryColor + '15',
                 fill: true,
@@ -329,7 +331,7 @@ const updateHistoryChart = () => {
         options: {
             responsive: true,
             maintainAspectRatio: false,
-            interaction: { intersect: false, mode: 'index' },
+            interaction: { intersect: false, mode: 'nearest' },
             plugins: {
                 legend: { display: false },
                 tooltip: {
@@ -341,15 +343,26 @@ const updateHistoryChart = () => {
                     padding: 12,
                     displayColors: false,
                     callbacks: {
-                        title: (items) => `📅 ${items[0].label}`,
-                        label: (context) => `💰 ¥ ${formatCurrency(context.raw)}`
+                        title: (items) => `📅 ${items[0].raw.originalDate}`,
+                        label: (context) => `💰 ¥ ${formatCurrency(context.raw.y)}`
                     }
                 }
             },
             scales: {
                 x: { 
+                    type: 'linear',
                     grid: { display: false },
-                    ticks: { font: { size: 13, weight: '500' }, color: isDark ? '#aaa' : '#666', maxRotation: 0, autoSkip: true, maxTicksLimit: 10 } 
+                    ticks: { 
+                        font: { size: 13, weight: '500' }, 
+                        color: isDark ? '#aaa' : '#666', 
+                        maxRotation: 0, 
+                        autoSkip: true, 
+                        maxTicksLimit: 10,
+                        callback: (value) => {
+                            const d = new Date(value);
+                            return `${d.getMonth() + 1}-${d.getDate()}`;
+                        }
+                    } 
                 },
                 y: { 
                     grid: { color: gridColor },
