@@ -30,10 +30,9 @@
                         <h5 class="mb-1 text-primary">🔄 预算结转兜底设置</h5>
                         <p class="text-muted small mb-0">当某个类别<b>未开启</b>“独立结转”时，其余额将汇总并补充到此处设置的类别中。</p>
                     </div>
-                    <form id="surplusTargetForm" class="d-flex gap-2">
-                        <select name="target" id="surplusTargetSelect" class="form-select form-select-sm" style="width: 200px;"></select>
-                        <button type="submit" class="btn btn-sm btn-primary px-3">保存配置</button>
-                    </form>
+                    <div class="d-flex gap-2">
+                        <select id="surplusTargetSelect" class="form-select form-select-sm" style="width: 200px; cursor: pointer;"></select>
+                    </div>
                 </div>
             </div>
         </div>
@@ -43,7 +42,7 @@
         <!-- 预算类别管理 -->
         <div class="col-md-7">
             <div class="card h-100">
-                <div class="card-header">📋 预算类别管理</div>
+                <div class="card-header">📋 预算类别管理 (拖拽排序)</div>
                 <div class="card-body">
                     <form id="manageCategoryForm" class="row g-2 mb-4">
                         <input type="hidden" id="oldCategoryName" name="old_name">
@@ -52,10 +51,10 @@
                         <div class="col-md-3"><input type="number" step="0.01" class="form-control form-control-sm" id="newCategoryInitial" name="initial" placeholder="固定花费" required></div>
                         <div class="col-12 d-flex align-items-center justify-content-between mt-3">
                             <div class="form-check form-switch small">
-                                <input class="form-check-input" type="checkbox" id="rolloverToggle" name="rollover">
-                                <label class="form-check-label" for="rolloverToggle">开启自动结转 (余额留给下个月的自己)</label>
+                                <input class="form-check-input" type="checkbox" id="rolloverToggle" name="rollover" style="cursor: pointer;">
+                                <label class="form-check-label fw-bold text-success" for="rolloverToggle" style="cursor: pointer;">独立结转</label>
                             </div>
-                            <button type="submit" id="submitCategoryBtn" class="btn btn-sm btn-secondary px-4">添加预算类别</button>
+                            <button type="submit" id="submitCategoryBtn" class="btn btn-sm btn-fancy btn-record-grad px-4 text-white">添加预算类别</button>
                         </div>
                     </form>
                     <ul class="list-group list-group-flush" id="categoryList"></ul>
@@ -66,11 +65,11 @@
         <!-- 资产类别管理 -->
         <div class="col-md-5">
             <div class="card h-100">
-                <div class="card-header">💼 资产类别管理</div>
+                <div class="card-header">💼 资产类别管理 (拖拽排序)</div>
                 <div class="card-body">
                     <form id="addAssetCategoryForm" class="input-group input-group-sm mb-3">
                         <input type="text" class="form-control" name="name" placeholder="新资产类别" required>
-                        <button type="submit" class="btn btn-secondary">添加</button>
+                        <button type="submit" class="btn btn-fancy btn-theme-grad text-white px-3">添加</button>
                     </form>
                     <ul class="list-group list-group-flush" id="assetCategoryList"></ul>
                 </div>

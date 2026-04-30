@@ -12,5 +12,7 @@ contextBridge.exposeInMainWorld('financeAPI', {
   recordAssetSnapshot: () => ipcRenderer.invoke('record-asset-snapshot'),
   deleteHistoryPoint: (index) => ipcRenderer.invoke('delete-history-point', index),
   setSurplusTarget: (target) => ipcRenderer.invoke('set-surplus-target', target),
-  setTheme: (theme) => ipcRenderer.invoke('set-theme', theme)
+  setTheme: (theme) => ipcRenderer.invoke('set-theme', theme),
+  reorderCategories: (newOrder) => ipcRenderer.invoke('reorder-categories', newOrder),
+  reorderAssetCategories: (newOrder) => ipcRenderer.invoke('reorder-asset-categories', newOrder)
 });

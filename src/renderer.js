@@ -137,6 +137,40 @@ const renderDashboard = async (month, page) => {
     updateHistoryChart();
 };
 
+// --- Drag and Drop Helper ---
+const setupDraggableList = (listId, onReorder) => {
+    const list = document.getElementById(listId);
+    let draggedItem = null;
+
+    list.addEventListener('dragstart', (e) => {
+        draggedItem = e.target.closest('li');
+        if (!draggedItem) return;
+        e.dataTransfer.effectAllowed = 'move';
+        e.dataTransfer.setData('text/plain', draggedItem.dataset.name);
+        setTimeout(() => draggedItem.classList.add('opacity-50'), 0);
+    });
+
+    list.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'move';
+        const targetItem = e.target.closest('li');
+        if (targetItem && targetItem !== draggedItem && targetItem.parentNode === list) {
+            const rect = targetItem.getBoundingClientRect();
+            const next = (e.clientY - rect.top)/(rect.bottom - rect.top) > .5;
+            list.insertBefore(draggedItem, next && targetItem.nextSibling || targetItem);
+        }
+    });
+
+    list.addEventListener('dragend', (e) => {
+        if (!draggedItem) return;
+        draggedItem.classList.remove('opacity-50');
+        draggedItem = null;
+        
+        const newOrder = Array.from(list.querySelectorAll('li')).map(li => li.dataset.name);
+        onReorder(newOrder);
+    });
+};
+
 const renderSettings = async () => {
     appData = await window.financeAPI.getAppData();
     
@@ -146,10 +180,15 @@ const renderSettings = async () => {
     for (const cat in appData.categories) {
         const opt = document.createElement('option');
         opt.value = cat;
-        opt.innerText = `补充到: ${cat}`;
+        opt.innerText = cat;
         opt.selected = (cat === appData.surplus_target);
         targetSelect.appendChild(opt);
     }
+    
+    targetSelect.onchange = async (e) => {
+        await window.financeAPI.setSurplusTarget(e.target.value);
+        updateUI();
+    };
 
     // Budget Category List
     const catList = document.getElementById('categoryList');
@@ -157,13 +196,17 @@ const renderSettings = async () => {
     for (const [cat, data] of Object.entries(appData.categories)) {
         const li = document.createElement('li');
         li.className = 'list-group-item d-flex justify-content-between align-items-center py-2';
+        li.draggable = true;
+        li.dataset.name = cat;
+        li.style.cursor = 'grab';
         li.innerHTML = `
             <div>
+                <span class="text-muted me-2">☰</span>
                 <span class="fw-bold">${cat}</span>
                 ${data.rollover ? '<span class="badge rounded-pill bg-success ms-1" style="font-size: 0.65rem;">独立结转 ON</span>' : ''}
                 ${cat === appData.surplus_target ? '<span class="badge rounded-pill bg-primary ms-1" style="font-size: 0.65rem;">全局目标</span>' : ''}
                 <br>
-                <span class="text-muted small">上限: ¥${data.limit} | 固定: ¥${data.initial}</span>
+                <span class="text-muted small ms-4">上限: ¥${data.limit} | 固定: ¥${data.initial}</span>
             </div>
             <div class="d-flex gap-1">
                 <button class="btn btn-sm btn-outline-primary px-2" onclick="editCat('${cat}', ${data.limit}, ${data.initial}, ${data.rollover})">编</button>
@@ -171,6 +214,10 @@ const renderSettings = async () => {
             </div>`;
         catList.appendChild(li);
     }
+    setupDraggableList('categoryList', async (newOrder) => {
+        await window.financeAPI.reorderCategories(newOrder);
+        updateUI();
+    });
 
     // Asset Category List
     const assetCatList = document.getElementById('assetCategoryList');
@@ -178,11 +225,21 @@ const renderSettings = async () => {
     for (const cat of Object.keys(appData.assets)) {
         const li = document.createElement('li');
         li.className = 'list-group-item d-flex justify-content-between align-items-center py-2';
+        li.draggable = true;
+        li.dataset.name = cat;
+        li.style.cursor = 'grab';
         li.innerHTML = `
-            <span>${cat}</span>
+            <div>
+                <span class="text-muted me-2">☰</span>
+                <span class="fw-bold">${cat}</span>
+            </div>
             <button class="btn btn-sm btn-outline-danger px-2" onclick="deleteAssetCategory('${cat}')">删</button>`;
         assetCatList.appendChild(li);
     }
+    setupDraggableList('assetCategoryList', async (newOrder) => {
+        await window.financeAPI.reorderAssetCategories(newOrder);
+        updateUI();
+    });
 };
 
 // --- Actions ---

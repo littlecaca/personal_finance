@@ -271,6 +271,32 @@ ipcMain.handle('delete-asset-category', async (event, name) => {
   return { success: true };
 });
 
+ipcMain.handle('reorder-categories', async (event, newOrder) => {
+  let config = loadJson(CONFIG_FILE, DEFAULT_CONFIG);
+  const newCats = {};
+  for (const name of newOrder) {
+    if (config.categories.hasOwnProperty(name)) {
+      newCats[name] = config.categories[name];
+    }
+  }
+  config.categories = newCats;
+  saveJson(CONFIG_FILE, config);
+  return { success: true };
+});
+
+ipcMain.handle('reorder-asset-categories', async (event, newOrder) => {
+  let config = loadJson(CONFIG_FILE, DEFAULT_CONFIG);
+  const newAssets = {};
+  for (const name of newOrder) {
+    if (config.assets.hasOwnProperty(name)) {
+      newAssets[name] = config.assets[name];
+    }
+  }
+  config.assets = newAssets;
+  saveJson(CONFIG_FILE, config);
+  return { success: true };
+});
+
 ipcMain.handle('record-asset-snapshot', async (event) => {
   const config = loadJson(CONFIG_FILE, DEFAULT_CONFIG);
   let history = loadJson(HISTORY_FILE, []);
