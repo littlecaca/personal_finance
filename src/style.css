@@ -13,13 +13,13 @@ body {
 }
 
 [data-bs-theme="light"] body {
-    background: linear-gradient(-45deg, #f0f4fd, #e0c3fc, #8ec5fc, #e0c3fc);
-    color: #2c3e50;
+    background: linear-gradient(-45deg, #fdfbf7, #fff9eb, #faf2e1, #fff9eb);
+    color: #4a3f35;
 }
 
 [data-bs-theme="dark"] body {
-    background: linear-gradient(-45deg, #121212, #2c3e50, #1a1a2e, #2c3e50);
-    color: #f8f9fa;
+    background: linear-gradient(-45deg, #2a2624, #3b3330, #2d2825, #3b3330);
+    color: #eae0d5;
 }
 
 /* Glassmorphism Cards */
@@ -92,13 +92,14 @@ body {
     box-shadow: 0 8px 25px rgba(0,0,0,0.25);
 }
 
-.btn-theme-grad { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white !important; }
-[data-bs-theme="dark"] .btn-theme-grad { background: linear-gradient(135deg, #f6d365 0%, #fda085 100%); color: #2c3e50 !important; }
+.btn-theme-grad { background: linear-gradient(135deg, #ffb75e 0%, #ed8f03 100%); color: white !important; }
+[data-bs-theme="dark"] .btn-theme-grad { background: linear-gradient(135deg, #735f4e 0%, #4d3d30 100%); color: #eae0d5 !important; }
 
-.btn-record-grad { background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); color: #1e7e34 !important; }
-[data-bs-theme="dark"] .btn-record-grad { background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%); color: #fff !important; }
+.btn-record-grad { background: linear-gradient(135deg, #f3a183 0%, #ec6f66 100%); color: white !important; }
+[data-bs-theme="dark"] .btn-record-grad { background: linear-gradient(135deg, #a16b56 0%, #7a4531 100%); color: #eae0d5 !important; }
 
-.btn-settings-grad { background: linear-gradient(135deg, #2af598 0%, #009efd 100%); color: white !important; text-decoration: none; }
+.btn-settings-grad { background: linear-gradient(135deg, #f6d365 0%, #fda085 100%); color: #4a3f35 !important; text-decoration: none; }
+[data-bs-theme="dark"] .btn-settings-grad { background: linear-gradient(135deg, #8e7a66 0%, #6b5745 100%); color: #eae0d5 !important; text-decoration: none; }
 
 .theme-toggle-wrapper { position: absolute; top: 20px; right: 20px; z-index: 1000; }
 
