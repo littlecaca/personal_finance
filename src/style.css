@@ -48,7 +48,8 @@ body::before {
 
 [data-bs-theme="light"] body::before {
     opacity: 0.55;
-    mix-blend-mode: color-burn;
+    mix-blend-mode: multiply;
+    filter: sepia(0.15) saturate(1.0) contrast(0.8);
 }
 
 [data-bs-theme="dark"] body::before {

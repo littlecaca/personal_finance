@@ -5,10 +5,46 @@
   "description": "一个基于 Electron 的完全离线个人财务追踪桌面应用。本地运行，数据持久化于本地，无数据上传风险。",
   "main": "main.js",
   "scripts": {
-    "start": "electron-forge start",
+    "start": "electron .",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "package": "electron-forge package",
-    "make": "electron-forge make"
+    "dist": "electron-builder"
+  },
+  "build": {
+    "appId": "com.finance.paper",
+    "productName": "Finance Paper",
+    "directories": {
+      "output": "dist"
+    },
+    "win": {
+      "icon": "logo.ico",
+      "target": [
+        "nsis"
+      ]
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "warningsAsErrors": false,
+      "runAfterFinish": true,
+      "createDesktopShortcut": false,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Finance Paper",
+      "installerIcon": "logo.ico",
+      "uninstallerIcon": "logo.ico",
+      "installerHeaderIcon": "logo.ico",
+      "language": "2052",
+      "include": "build/installer.nsh"
+    },
+    "files": [
+      "main.js",
+      "preload.js",
+      "logo.ico",
+      "src/**/*",
+      "!dist/*",
+      "!out/*",
+      "!data/*"
+    ],
+    "asar": true
   },
   "repository": {
     "type": "git",
@@ -23,14 +59,10 @@
   },
   "homepage": "https://github.com/littlecaca/personal_finance#readme",
   "devDependencies": {
-    "@electron-forge/cli": "^7.11.1",
-    "@electron-forge/maker-squirrel": "^7.11.1",
-    "@electron-forge/maker-zip": "^7.11.1",
+    "@electron/fuses": "^1.8.0",
     "electron": "^41.3.0",
+    "electron-builder": "^26.8.1",
     "jimp": "^1.6.1",
     "png-to-ico": "^3.0.1"
-  },
-  "dependencies": {
-    "electron-squirrel-startup": "^1.0.1"
   }
 }

@@ -444,6 +444,7 @@ const updateHistoryChart = () => {
                 pointBackgroundColor: primaryColor,
                 pointBorderColor: '#fff',
                 pointBorderWidth: 2,
+                pointHitRadius: 20,
                 borderWidth: 3
             }]
         },
@@ -470,6 +471,8 @@ const updateHistoryChart = () => {
             scales: {
                 x: { 
                     type: 'linear',
+                    min: n === 1 ? X_vals[0] - 86400000 : undefined, // 1 day padding
+                    max: n === 1 ? X_vals[0] + 86400000 : undefined,
                     grid: { display: false },
                     ticks: { 
                         font: { size: 13, weight: '500' }, 
@@ -477,7 +480,8 @@ const updateHistoryChart = () => {
                         maxRotation: 0, 
                         autoSkip: true, 
                         maxTicksLimit: 10,
-                        callback: (value) => {
+                        callback: function(value) {
+                            if (n === 1 && value !== X_vals[0]) return '';
                             let realT = value;
                             if (n > 1 && value > X_vals[0] && value < X_vals[n-1]) {
                                 for (let i = 1; i < n; i++) {

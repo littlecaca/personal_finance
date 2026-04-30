@@ -3,10 +3,7 @@ const path = require('path');
 const fs = require('fs');
 
 // --- Configuration & Constants ---
-const DATA_DIR = path.join(app.getPath('userData'), 'data'); // Better to use userData for installed apps
-// But for development/portability with previous data, let's stick to the app directory for now
-// Actually, let's use a path relative to the executable/script for portability as requested.
-const BASE_DATA_DIR = path.join(__dirname, 'data');
+const BASE_DATA_DIR = path.join(app.getPath('userData'), 'data');
 const CONFIG_FILE = path.join(BASE_DATA_DIR, 'config.json');
 const METADATA_FILE = path.join(BASE_DATA_DIR, 'metadata.json');
 const HISTORY_FILE = path.join(BASE_DATA_DIR, 'history.json');
