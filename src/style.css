@@ -47,12 +47,12 @@ body::before {
 }
 
 [data-bs-theme="light"] body::before {
-    opacity: 0.8;
-    mix-blend-mode: multiply;
+    opacity: 0.55;
+    mix-blend-mode: color-burn;
 }
 
 [data-bs-theme="dark"] body::before {
-    opacity: 0.15;
+    opacity: 0.25;
     filter: invert(1);
     mix-blend-mode: screen;
 }
