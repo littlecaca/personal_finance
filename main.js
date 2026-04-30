@@ -281,6 +281,24 @@ ipcMain.handle('reorder-categories', async (event, newOrder) => {
   }
   config.categories = newCats;
   saveJson(CONFIG_FILE, config);
+
+  // Sync to current month snapshot if it exists
+  const ym = formatMonth(new Date());
+  const mFile = getMonthFile(ym);
+  if (fs.existsSync(mFile)) {
+    let mData = loadJson(mFile, {});
+    // Filter and reorder the snapshot too
+    const newSnapshot = {};
+    for (const name of newOrder) {
+      if (mData.budget_snapshot && mData.budget_snapshot.hasOwnProperty(name)) {
+        newSnapshot[name] = mData.budget_snapshot[name];
+      } else if (config.categories.hasOwnProperty(name)) {
+        newSnapshot[name] = config.categories[name];
+      }
+    }
+    mData.budget_snapshot = newSnapshot;
+    saveJson(mFile, mData);
+  }
   return { success: true };
 });
 
