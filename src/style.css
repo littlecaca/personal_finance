@@ -1,0 +1,137 @@
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    transition: background-color 0.5s ease, color 0.5s ease;
+    min-height: 100vh;
+    background-size: 400% 400%;
+    animation: gradientBG 15s ease infinite;
+}
+
+@keyframes gradientBG {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+[data-bs-theme="light"] body {
+    background: linear-gradient(-45deg, #f0f4fd, #e0c3fc, #8ec5fc, #e0c3fc);
+    color: #2c3e50;
+}
+
+[data-bs-theme="dark"] body {
+    background: linear-gradient(-45deg, #121212, #2c3e50, #1a1a2e, #2c3e50);
+    color: #f8f9fa;
+}
+
+/* Glassmorphism Cards */
+.card {
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 16px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    margin-bottom: 24px;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+}
+
+.card-header {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 16px 16px 0 0 !important;
+    font-weight: bold;
+    background-color: transparent !important;
+}
+
+[data-bs-theme="light"] .card {
+    background: rgba(255, 255, 255, 0.65);
+}
+
+[data-bs-theme="dark"] .card {
+    background: rgba(30, 30, 30, 0.5);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.total-spend-text {
+    font-size: 2.5rem;
+    font-weight: 800;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+/* Table styling for glass effect */
+.table {
+    background-color: transparent;
+    --bs-table-bg: transparent;
+}
+.table-responsive {
+    backdrop-filter: blur(4px);
+    border-radius: 8px;
+}
+
+[data-bs-theme="dark"] .table-light { 
+    --bs-table-bg: rgba(255,255,255,0.05); 
+    --bs-table-color: #e9ecef;
+    --bs-table-border-color: rgba(255,255,255,0.1);
+}
+[data-bs-theme="light"] .table-light {
+    --bs-table-bg: rgba(0,0,0,0.03);
+}
+
+/* Fancy Buttons */
+.btn-fancy {
+    border: none;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    font-weight: 600;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+    backdrop-filter: blur(4px);
+}
+.btn-fancy:hover {
+    transform: translateY(-3px) scale(1.02);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.25);
+}
+
+.btn-theme-grad { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white !important; }
+[data-bs-theme="dark"] .btn-theme-grad { background: linear-gradient(135deg, #f6d365 0%, #fda085 100%); color: #2c3e50 !important; }
+
+.btn-record-grad { background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); color: #1e7e34 !important; }
+[data-bs-theme="dark"] .btn-record-grad { background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%); color: #fff !important; }
+
+.btn-settings-grad { background: linear-gradient(135deg, #2af598 0%, #009efd 100%); color: white !important; text-decoration: none; }
+
+.theme-toggle-wrapper { position: absolute; top: 20px; right: 20px; z-index: 1000; }
+
+/* Inputs and Selects styling */
+.form-control, .form-select {
+    background-color: rgba(255, 255, 255, 0.5);
+    border: 1px solid rgba(255,255,255,0.3);
+    backdrop-filter: blur(4px);
+    transition: all 0.3s ease;
+}
+.form-control:focus, .form-select:focus {
+    background-color: rgba(255, 255, 255, 0.8);
+    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.15);
+}
+
+[data-bs-theme="dark"] .form-control, [data-bs-theme="dark"] .form-select {
+    background-color: rgba(0, 0, 0, 0.2);
+    border: 1px solid rgba(255,255,255,0.1);
+    color: #e9ecef;
+}
+[data-bs-theme="dark"] .form-control:focus, [data-bs-theme="dark"] .form-select:focus {
+    background-color: rgba(0, 0, 0, 0.4);
+    color: #fff;
+}
+[data-bs-theme="dark"] .form-control::placeholder {
+    color: #888;
+}
+
+/* List group for assets/categories */
+.list-group-item {
+    background-color: transparent !important;
+    border-color: rgba(0,0,0,0.05);
+}
+[data-bs-theme="dark"] .list-group-item {
+    border-color: rgba(255,255,255,0.05);
+}
