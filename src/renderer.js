@@ -44,19 +44,42 @@ const renderDashboard = async (month, page) => {
         progContainer.appendChild(div);
     }
 
-    // Month Selector
+    // Year & Month Selectors
+    const yearSelector = document.getElementById('yearSelector');
     const monthSelector = document.getElementById('monthSelector');
+    
+    const [curYear, curMonth] = appData.current_month.split('-');
+    
+    // Populate Years based on history + current
+    const recordedYears = new Set(Object.keys(appData.metadata).map(m => m.split('-')[0]));
+    recordedYears.add(new Date().getFullYear().toString());
+    recordedYears.add(curYear);
+    
+    yearSelector.innerHTML = '';
+    Array.from(recordedYears).sort().reverse().forEach(y => {
+        const opt = document.createElement('option');
+        opt.value = y;
+        opt.innerText = `${y}年`;
+        opt.selected = (y === curYear);
+        yearSelector.appendChild(opt);
+    });
+
     monthSelector.innerHTML = '';
-    const recordedMonths = Object.keys(appData.metadata).sort().reverse();
-    if (!recordedMonths.includes(appData.current_month)) recordedMonths.unshift(appData.current_month);
-    for (const m of recordedMonths) {
+    for (let i = 1; i <= 12; i++) {
+        const m = String(i).padStart(2, '0');
         const opt = document.createElement('option');
         opt.value = m;
-        opt.innerText = m;
-        opt.selected = (m === appData.current_month);
+        opt.innerText = `${i}月`;
+        opt.selected = (m === curMonth);
         monthSelector.appendChild(opt);
     }
-    monthSelector.onchange = () => renderDashboard(monthSelector.value);
+
+    const handleDateChange = () => {
+        const target = `${yearSelector.value}-${monthSelector.value}`;
+        renderDashboard(target);
+    };
+    yearSelector.onchange = handleDateChange;
+    monthSelector.onchange = handleDateChange;
 
     // Expense Category Selector
     const expenseCatSelect = document.getElementById('expenseCategory');
