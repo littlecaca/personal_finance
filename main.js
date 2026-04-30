@@ -46,7 +46,9 @@ function getMonthFile(yearMonth) {
 }
 
 function formatMonth(date) {
-  return date.toISOString().slice(0, 7);
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, '0');
+  return `${y}-${m}`;
 }
 
 function formatDateTime(date) {
