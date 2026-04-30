@@ -25,6 +25,8 @@
         .btn-fancy:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,0.15); }
         .btn-theme-grad { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white !important; }
         [data-bs-theme="dark"] .btn-theme-grad { background: linear-gradient(135deg, #f6d365 0%, #fda085 100%); color: #2c3e50 !important; }
+        .btn-record-grad { background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); color: #1e7e34 !important; font-weight: bold; }
+        [data-bs-theme="dark"] .btn-record-grad { background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%); color: #fff !important; }
         .btn-settings-grad { background: linear-gradient(135deg, #2af598 0%, #009efd 100%); color: white !important; text-decoration: none; }
         .theme-toggle-wrapper { position: absolute; top: 20px; right: 20px; z-index: 1000; }
     </style>
@@ -152,10 +154,17 @@
 
     <div class="row">
         <div class="col-12">
+            <!-- 资产分布卡片 -->
             <div class="card mb-4">
-                <div class="card-header">📊 资产分布与更新</div>
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <span>📊 资产分布与更新</span>
+                    <form action="/api/record_asset_snapshot" method="POST" class="m-0">
+                        <input type="hidden" name="current_month" value="{{ app_data.current_month }}">
+                        <button type="submit" class="btn btn-sm btn-fancy btn-record-grad rounded-pill px-3">记录</button>
+                    </form>
+                </div>
                 <div class="card-body">
-                    <div class="row align-items-center">
+                    <div class="row align-items-center py-2">
                         <div class="col-md-5 d-flex flex-column align-items-center justify-content-center mb-4 mb-md-0">
                             <h6 class="text-muted mb-1">当前资产总额 (CNY)</h6>
                             <div class="total-spend-text text-success mb-3" id="totalAssetsDisplay">¥ 0.00</div>
@@ -164,6 +173,17 @@
                         <div class="col-md-7">
                             <ul class="list-group list-group-flush" id="assetList"></ul>
                         </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 资产趋势卡片 -->
+            <div class="card mb-4">
+                <div class="card-header">📈 资产变化趋势</div>
+                <div class="card-body">
+                    <div class="py-2">
+                        <h6 class="text-muted mb-3 small">提示：点击图中的数据点可删除对应的历史记录</h6>
+                        <div style="height: 300px;"><canvas id="historyChart"></canvas></div>
                     </div>
                 </div>
             </div>
@@ -183,6 +203,7 @@
 <script>
     const appData = {{ app_data | tojson }};
     let assetChartInstance = null;
+    let historyChartInstance = null;
 
     const formatCurrency = (num) => parseFloat(num).toLocaleString('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
@@ -205,6 +226,7 @@
             assetList.appendChild(li);
         }
         updateChart();
+        updateHistoryChart();
 
         document.getElementById('totalMonthSpendDisplay').innerHTML = `¥ ${formatCurrency(appData.total_month_spend)} <span class="fs-5 text-muted">/ ¥ ${formatCurrency(appData.total_month_limit)}</span>`;
         
@@ -270,6 +292,95 @@
         });
     };
 
+    const updateHistoryChart = () => {
+        const ctx = document.getElementById('historyChart');
+        if (!ctx || !appData.history || appData.history.length === 0) return;
+        
+        // 仅提取日期部分 (YYYY-MM-DD)
+        const labels = appData.history.map(item => item.date.split(' ')[0]);
+        const values = appData.history.map(item => item.total);
+        
+        if (historyChartInstance) historyChartInstance.destroy();
+        
+        const isDark = document.documentElement.getAttribute('data-bs-theme') === 'dark';
+        const primaryColor = isDark ? '#fda085' : '#764ba2';
+        const gridColor = isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)';
+        
+        historyChartInstance = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: '总资产 (CNY)',
+                    data: values,
+                    borderColor: primaryColor,
+                    backgroundColor: primaryColor + '15', // 更淡的填充色
+                    fill: true,
+                    tension: 0.4, // 增加曲线弧度使其更平滑
+                    pointRadius: 5,
+                    pointHoverRadius: 8,
+                    pointBackgroundColor: primaryColor,
+                    pointBorderColor: '#fff',
+                    pointBorderWidth: 2,
+                    borderWidth: 3
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: {
+                    intersect: false,
+                    mode: 'index',
+                },
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        backgroundColor: isDark ? '#2c2c2c' : '#fff',
+                        titleColor: isDark ? '#fff' : '#2c3e50',
+                        bodyColor: isDark ? '#eee' : '#2c3e50',
+                        borderColor: primaryColor,
+                        borderWidth: 1,
+                        padding: 12,
+                        displayColors: false,
+                        callbacks: {
+                            title: (items) => `📅 ${items[0].label}`,
+                            label: (context) => `💰 ¥ ${formatCurrency(context.raw)}`
+                        }
+                    }
+                },
+                scales: {
+                    x: { 
+                        grid: { display: false },
+                        ticks: { 
+                            font: { size: 13, weight: '500' }, // 放大字体
+                            color: isDark ? '#aaa' : '#666',
+                            maxRotation: 0,
+                            autoSkip: true,
+                            maxTicksLimit: 10
+                        } 
+                    },
+                    y: { 
+                        grid: { color: gridColor },
+                        ticks: { 
+                            font: { size: 12 },
+                            color: isDark ? '#aaa' : '#666',
+                            callback: (value) => '¥' + (value >= 10000 ? (value/10000).toFixed(1) + 'w' : value) 
+                        } 
+                    }
+                },
+                onClick: (event, elements) => {
+                    if (elements.length > 0) {
+                        const index = elements[0].index;
+                        const data = appData.history[index];
+                        if (confirm(`确定要删除 ${data.date} 的记录 (¥${formatCurrency(data.total)}) 吗？`)) {
+                            location.href = `/api/delete_history_point/${index}`;
+                        }
+                    }
+                }
+            }
+        });
+    };
+
     document.addEventListener('DOMContentLoaded', () => {
         const applyTheme = (theme) => {
             document.documentElement.setAttribute('data-bs-theme', theme);
@@ -278,6 +389,7 @@
             document.getElementById('themeIcon').textContent = isDark ? '☀️' : '🌙';
             document.getElementById('themeText').textContent = isDark ? '浅色模式' : '暗色模式';
             updateChart();
+            updateHistoryChart();
         };
         applyTheme(localStorage.getItem('budget_tracker_theme') || 'light');
         document.getElementById('themeToggle').onclick = () => applyTheme(document.documentElement.getAttribute('data-bs-theme') === 'dark' ? 'light' : 'dark');

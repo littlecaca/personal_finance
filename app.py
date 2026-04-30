@@ -8,6 +8,7 @@ app = Flask(__name__)
 DATA_DIR = 'data'
 CONFIG_FILE = os.path.join(DATA_DIR, 'config.json')
 METADATA_FILE = os.path.join(DATA_DIR, 'metadata.json')
+HISTORY_FILE = os.path.join(DATA_DIR, 'history.json')
 
 if not os.path.exists(DATA_DIR):
     os.makedirs(DATA_DIR)
@@ -107,6 +108,7 @@ def get_app_data(target_month, page=1, per_page=8):
     
     return {
         "assets": config["assets"],
+        "history": load_json(HISTORY_FILE, []),
         "categories": config["categories"],
         "active_categories": active_categories,
         "category_totals": category_totals,
@@ -228,6 +230,27 @@ def delete_asset_category(name):
         del config['assets'][name]
         save_json(CONFIG_FILE, config)
     return redirect(url_for('settings' if request.args.get('from_page') == 'settings' else 'index'))
+
+@app.route('/api/record_asset_snapshot', methods=['POST'])
+def record_asset_snapshot():
+    config = load_json(CONFIG_FILE, DEFAULT_CONFIG)
+    history = load_json(HISTORY_FILE, [])
+    total = sum(float(v) for v in config["assets"].values())
+    history.append({
+        "date": datetime.now().strftime("%Y-%m-%d %H:%M"),
+        "total": total
+    })
+    # Keep only last 100 records to prevent file from growing too large
+    save_json(HISTORY_FILE, history[-100:])
+    return redirect(url_for('index', month=request.form.get('current_month')))
+
+@app.route('/api/delete_history_point/<int:index>')
+def delete_history_point(index):
+    history = load_json(HISTORY_FILE, [])
+    if 0 <= index < len(history):
+        history.pop(index)
+        save_json(HISTORY_FILE, history)
+    return redirect(url_for('index'))
 
 if __name__ == '__main__':
     app.run(debug=True, port=5000)

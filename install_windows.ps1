@@ -1,55 +1,65 @@
 <#
 .SYNOPSIS
-Finance Tracker - Windows Scheduled Task Service Installation Script
+²ÆÎñ¿´°åÓ¦ÓÃ - Windows ¼Æ»®ÈÎÎñ·şÎñ°²×°½Å±¾ (ÔöÇ¿°æ)
 
 .DESCRIPTION
-This script uses Windows Task Scheduler to register the application as an implicit background service,
-and automatically runs the Flask application at system startup.
+´Ë½Å±¾»áÊ¹ÓÃ Windows ¼Æ»®ÈÎÎñ½«¸ÃÓ¦ÓÃ×¢²áÎªÒşÊ½ºóÌ¨·şÎñ¡£
+ÅäÖÃÁËÔöÇ¿µÄ¿ª»ú×ÔÆôÊôĞÔ£¬È·±£ÔÚµç³ØÄ£Ê½ÏÂÒ²ÄÜÕı³£ÔËĞĞ¡£
 #>
 
-# Ensure running with administrator privileges
+# È·±£ÒÔ¹ÜÀíÔ±È¨ÏŞÔËĞĞ
 $isAdmin = ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
 
 if (-not $isAdmin) {
-    Write-Host "Error: Please run PowerShell as administrator and execute this script again." -ForegroundColor Red
+    Write-Host "´íÎó: ÇëÒÔ¹ÜÀíÔ±Éí·İÔËĞĞ PowerShell£¬È»ºóÔÙ´ÎÖ´ĞĞ´Ë½Å±¾¡£" -ForegroundColor Red
     Pause
     Exit
 }
 
-# Check if Python is available
+# ¼ì²é Python ÊÇ·ñ¿ÉÓÃ
 try {
     $pythonVersion = python --version 2>&1
 } catch {
-    Write-Host "Error: python not found in environment variables, please ensure Python is installed and added to PATH." -ForegroundColor Red
+    Write-Host "´íÎó: Î´ÔÚ»·¾³±äÁ¿ÖĞÕÒµ½ python£¬ÇëÈ·±£ÒÑ°²×° Python ²¢Ìí¼Óµ½ÁË PATH¡£" -ForegroundColor Red
     Pause
     Exit
 }
-
-# Install Flask dependency
-Write-Host "Installing Flask dependency..." -ForegroundColor Cyan
-python -m pip install flask --quiet
 
 $AppDir = Get-Location
 $TaskName = "FinanceTrackerService"
 
-Write-Host "Registering background service (Scheduled Task)..." -ForegroundColor Cyan
+Write-Host "ÕıÔÚ×¢²áºóÌ¨·şÎñ£¨¿ª»ú×ÔÆô¼Æ»®ÈÎÎñ£©..." -ForegroundColor Cyan
 
-# Set to run Flask application hidden at startup
+# 1. ¶¨Òå²Ù×÷£ººóÌ¨ÔËĞĞ Python HTTP Server
 $Action = New-ScheduledTaskAction -Execute "powershell.exe" -Argument "-WindowStyle Hidden -Command `"cd '$AppDir'; python app.py`""
-# Set trigger: Run at system startup (auto-start)
+
+# 2. ¶¨Òå´¥·¢Æ÷£ºAtStartup (ÏµÍ³Æô¶¯Ê±£¬ÎŞĞèµÇÂ¼)
 $Trigger = New-ScheduledTaskTrigger -AtStartup
-# Set run level to highest and allow run on demand
+
+# 3. ¶¨ÒåÔËĞĞÕË»§£ºÊ¹ÓÃ SYSTEM ÕË»§¿ÉÒÔÔÚÓÃ»§Î´µÇÂ¼Ê±¾ÍÆô¶¯·şÎñ
 $Principal = New-ScheduledTaskPrincipal -UserId "SYSTEM" -LogonType ServiceAccount -RunLevel Highest
 
-# Register and overwrite task with same name
-Register-ScheduledTask -TaskName $TaskName -Action $Action -Trigger $Trigger -Principal $Principal -Force | Out-Null
+# 4. ¹Ø¼üÉèÖÃ£ºÔöÇ¿¿ª»ú×ÔÆô¿É¿¿ĞÔ
+$Settings = New-ScheduledTaskSettingsSet `
+    -AllowStartIfOnBatteries `
+    -DontStopIfGoingOnBatteries `
+    -ExecutionTimeLimit (New-TimeSpan -Days 0) `
+    -RestartCount 3 `
+    -RestartInterval (New-TimeSpan -Minutes 1)
 
-# Start task immediately
+# 5. ×¢²á²¢¸²¸ÇÈÎÎñ
+Register-ScheduledTask -TaskName $TaskName -Action $Action -Trigger $Trigger -Principal $Principal -Settings $Settings -Force | Out-Null
+
+# Á¢¼´Æô¶¯ÈÎÎñ½øĞĞ²âÊÔ
 Start-ScheduledTask -TaskName $TaskName
 
 Write-Host "================================================================" -ForegroundColor Green
-Write-Host "âœ… Installation successful!" -ForegroundColor Green
-Write-Host "The application is now running as a background task and will start automatically at system startup." -ForegroundColor Green
-Write-Host "You can now visit in your browser: http://localhost:5000" -ForegroundColor Green
+Write-Host "? °²×°³É¹¦£¡" -ForegroundColor Green
+Write-Host "¹Ø¼üÅäÖÃÒÑÍê³É£º" -ForegroundColor White
+Write-Host " - ´¥·¢Æ÷£ºÏµÍ³Æô¶¯Ê± (AtStartup)" -ForegroundColor White
+Write-Host " - ÔËĞĞÕË»§£ºSYSTEM (ÎŞĞèµÇÂ¼¼´¿ÉÔËĞĞ)" -ForegroundColor White
+Write-Host " - µçÔ´¹ÜÀí£ºÔÊĞíµç³ØÄ£Ê½ÏÂÔËĞĞ" -ForegroundColor White
+Write-Host "================================================================" -ForegroundColor Green
+Write-Host "ÄúÏÖÔÚ¿ÉÒÔÔÚä¯ÀÀÆ÷ÖĞ·ÃÎÊ: http://localhost:5000" -ForegroundColor Green
 Write-Host "================================================================" -ForegroundColor Green
 Pause
