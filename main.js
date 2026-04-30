@@ -367,6 +367,7 @@ function createWindow() {
     width: 1280,
     height: 900,
     title: 'finance paper-金融手账',
+    icon: path.join(__dirname, 'logo.ico'),
     autoHideMenuBar: true,
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
