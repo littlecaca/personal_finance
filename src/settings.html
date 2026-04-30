@@ -32,7 +32,7 @@
 <div class="container py-5 mt-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h2 class="m-0 mx-auto">⚙️ 类别与系统设置</h2>
-        <a href="/?month={{ app_data.current_month }}" class="btn btn-fancy btn-settings-grad rounded-pill position-absolute px-4 py-2" style="right: 180px; top: 20px;">🔙 返回看板</a>
+        <button id="backToDashboard" class="btn btn-fancy btn-settings-grad rounded-pill position-absolute px-4 py-2" style="right: 180px; top: 20px;">🔙 返回看板</button>
     </div>
 
     <!-- 结转配置 -->
@@ -44,13 +44,8 @@
                         <h5 class="mb-1 text-primary">🔄 预算结转兜底设置</h5>
                         <p class="text-muted small mb-0">当某个类别<b>未开启</b>“独立结转”时，其余额将汇总并补充到此处设置的类别中。</p>
                     </div>
-                    <form action="/api/set_surplus_target" method="POST" class="d-flex gap-2">
-                        <select name="target" class="form-select form-select-sm" style="width: 200px;">
-                            <option value="">禁用汇总结转</option>
-                            {% for cat in app_data.categories.keys() %}
-                            <option value="{{ cat }}" {% if cat == app_data.surplus_target %}selected{% endif %}>补充到: {{ cat }}</option>
-                            {% endfor %}
-                        </select>
+                    <form id="surplusTargetForm" class="d-flex gap-2">
+                        <select name="target" id="surplusTargetSelect" class="form-select form-select-sm" style="width: 200px;"></select>
                         <button type="submit" class="btn btn-sm btn-primary px-3">保存配置</button>
                     </form>
                 </div>
@@ -64,9 +59,7 @@
             <div class="card h-100">
                 <div class="card-header">📋 预算类别管理</div>
                 <div class="card-body">
-                    <form id="addCategoryForm" class="row g-2 mb-4" action="/api/manage_category" method="POST">
-                        <input type="hidden" name="from_page" value="settings">
-                        <input type="hidden" name="current_month" value="{{ app_data.current_month }}">
+                    <form id="manageCategoryForm" class="row g-2 mb-4">
                         <input type="hidden" id="oldCategoryName" name="old_name">
                         <div class="col-md-6"><input type="text" class="form-control form-control-sm" id="newCategoryInput" name="name" placeholder="类别名称" required></div>
                         <div class="col-md-3"><input type="number" step="0.01" class="form-control form-control-sm" id="newCategoryLimit" name="limit" placeholder="上限" required></div>
@@ -79,27 +72,7 @@
                             <button type="submit" id="submitCategoryBtn" class="btn btn-sm btn-secondary px-4">添加预算类别</button>
                         </div>
                     </form>
-                    <ul class="list-group list-group-flush">
-                        {% for cat, data in app_data.categories.items() %}
-                        <li class="list-group-item d-flex justify-content-between align-items-center py-2">
-                            <div>
-                                <span class="fw-bold">{{ cat }}</span>
-                                {% if data.rollover %}
-                                <span class="badge rounded-pill bg-success ms-1" style="font-size: 0.65rem;">独立结转 ON</span>
-                                {% endif %}
-                                {% if cat == app_data.surplus_target %}
-                                <span class="badge rounded-pill bg-primary ms-1" style="font-size: 0.65rem;">全局目标</span>
-                                {% endif %}
-                                <br>
-                                <span class="text-muted small">上限: ¥{{ data.limit }} | 固定: ¥{{ data.initial }}</span>
-                            </div>
-                            <div class="d-flex gap-1">
-                                <button class="btn btn-sm btn-outline-primary px-2" onclick="editCat('{{ cat }}', {{ data.limit }}, {{ data.initial }}, {{ 'true' if data.rollover else 'false' }})">编</button>
-                                <a href="/api/delete_category/{{ cat }}?from_page=settings" class="btn btn-sm btn-outline-danger px-2">删</a>
-                            </div>
-                        </li>
-                        {% endfor %}
-                    </ul>
+                    <ul class="list-group list-group-flush" id="categoryList"></ul>
                 </div>
             </div>
         </div>
@@ -109,48 +82,18 @@
             <div class="card h-100">
                 <div class="card-header">💼 资产类别管理</div>
                 <div class="card-body">
-                    <form action="/api/add_asset_category" method="POST" class="input-group input-group-sm mb-3">
-                        <input type="hidden" name="from_page" value="settings">
+                    <form id="addAssetCategoryForm" class="input-group input-group-sm mb-3">
                         <input type="text" class="form-control" name="name" placeholder="新资产类别" required>
                         <button type="submit" class="btn btn-secondary">添加</button>
                     </form>
-                    <ul class="list-group list-group-flush">
-                        {% for cat in app_data.assets.keys() %}
-                        <li class="list-group-item d-flex justify-content-between align-items-center py-2">
-                            <span>{{ cat }}</span>
-                            <a href="/api/delete_asset_category/{{ cat }}?from_page=settings" class="btn btn-sm btn-outline-danger px-2">删</a>
-                        </li>
-                        {% endfor %}
-                    </ul>
+                    <ul class="list-group list-group-flush" id="assetCategoryList"></ul>
                 </div>
             </div>
         </div>
     </div>
 </div>
 
-<script>
-    window.editCat = (cat, limit, initial, rollover) => {
-        document.getElementById('newCategoryInput').value = cat;
-        document.getElementById('newCategoryLimit').value = limit;
-        document.getElementById('newCategoryInitial').value = initial;
-        document.getElementById('rolloverToggle').checked = rollover;
-        document.getElementById('oldCategoryName').value = cat;
-        const btn = document.getElementById('submitCategoryBtn');
-        btn.innerText = '保存修改';
-        btn.classList.replace('btn-secondary', 'btn-primary');
-    };
-
-    document.addEventListener('DOMContentLoaded', () => {
-        const applyTheme = (theme) => {
-            document.documentElement.setAttribute('data-bs-theme', theme);
-            localStorage.setItem('budget_tracker_theme', theme);
-            const isDark = theme === 'dark';
-            document.getElementById('themeIcon').textContent = isDark ? '☀️' : '🌙';
-            document.getElementById('themeText').textContent = isDark ? '浅色模式' : '暗色模式';
-        };
-        applyTheme(localStorage.getItem('budget_tracker_theme') || 'light');
-        document.getElementById('themeToggle').onclick = () => applyTheme(document.documentElement.getAttribute('data-bs-theme') === 'dark' ? 'light' : 'dark');
-    });
-</script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="renderer.js"></script>
 </body>
 </html>

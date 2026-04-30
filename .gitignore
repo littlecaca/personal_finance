@@ -1,12 +1,9 @@
-# Byte-compiled / optimized / DLL files
-__pycache__/
-*.py[cod]
-*$py.class
+# Node.js
+node_modules/
+package-lock.json
 
-# Environments
-.venv/
-venv/
-ENV/
+# Electron Forge output
+out/
 
 # Project data
 data/

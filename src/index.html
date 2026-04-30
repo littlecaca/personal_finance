@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-bs-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>个人预算与资产追踪</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; transition: background-color 0.3s ease, color 0.3s ease; }
+        .card { border: none; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 24px; transition: background-color 0.3s ease, box-shadow 0.3s ease; }
+        .card-header { border-bottom: 1px solid rgba(0,0,0,0.08); border-radius: 12px 12px 0 0 !important; font-weight: bold; }
+        .total-spend-text { font-size: 2.2rem; font-weight: bold; color: #2c3e50; transition: color 0.3s ease;}
+        [data-bs-theme="light"] body { background-color: #FBF8F1; }
+        [data-bs-theme="light"] .card-header { background-color: #fff; }
+        [data-bs-theme="dark"] body { background-color: #121212; }
+        [data-bs-theme="dark"] .card { background-color: #1e1e1e; }
+        [data-bs-theme="dark"] .total-spend-text { color: #f8f9fa; }
+        [data-bs-theme="dark"] .table-light { 
+            --bs-table-bg: #2c2c2c; 
+            --bs-table-color: #e9ecef;
+            --bs-table-border-color: #3d3d3d;
+        }
+        [data-bs-theme="dark"] .table { color: #e9ecef; border-color: #3d3d3d; }
+        .btn-fancy { border: none; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); font-weight: 500; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        .btn-fancy:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,0.15); }
+        .btn-theme-grad { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white !important; }
+        [data-bs-theme="dark"] .btn-theme-grad { background: linear-gradient(135deg, #f6d365 0%, #fda085 100%); color: #2c3e50 !important; }
+        .btn-record-grad { background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); color: #1e7e34 !important; font-weight: bold; }
+        [data-bs-theme="dark"] .btn-record-grad { background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%); color: #fff !important; }
+        .btn-settings-grad { background: linear-gradient(135deg, #2af598 0%, #009efd 100%); color: white !important; text-decoration: none; }
+        .theme-toggle-wrapper { position: absolute; top: 20px; right: 20px; z-index: 1000; }
+    </style>
+</head>
+<body class="position-relative">
+
+<div class="theme-toggle-wrapper">
+    <button id="themeToggle" class="btn btn-fancy btn-theme-grad rounded-pill px-4 py-2 d-flex align-items-center gap-2">
+        <span id="themeIcon">🌙</span> <span id="themeText">暗色模式</span>
+    </button>
+</div>
+
+<div id="mainView" class="container py-5 mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="m-0 mx-auto">💸 个人预算与资产看板</h2>
+        <button id="goToSettings" class="btn btn-fancy btn-settings-grad rounded-pill position-absolute px-4 py-2" style="right: 180px; top: 20px;">⚙️ 管理类别</button>
+    </div>
+
+    <div class="row mb-4 align-items-stretch">
+        <div class="col-lg-5 mb-4 mb-lg-0">
+            <div class="card h-100">
+                <div class="card-header"><span id="currentMonthLabel"></span> 预算与进度</div>
+                <div class="card-body">
+                    <div class="text-center mb-4">
+                        <h6 class="text-muted mb-1">本月总开销 (CNY)</h6>
+                        <div class="total-spend-text text-danger" id="totalMonthSpendDisplay">¥ 0.00</div>
+                    </div>
+                    <hr class="mb-4">
+                    <div id="budgetProgressContainer"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-7">
+            <div class="card h-100">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <span>🛒 记录日常开销</span>
+                    <div class="d-flex align-items-center gap-2">
+                        <label class="small text-muted">切换月份:</label>
+                        <select class="form-select form-select-sm" style="width: auto;" id="monthSelector"></select>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <form id="addExpenseForm" class="mb-4">
+                        <div class="row g-2">
+                            <div class="col-md-3">
+                                <select class="form-select" name="category" id="expenseCategory" required></select>
+                            </div>
+                            <div class="col-md-3">
+                                <input type="number" step="0.01" class="form-control" name="amount" placeholder="金额 (¥)" required>
+                            </div>
+                            <div class="col-md-4">
+                                <input type="text" class="form-control" name="description" placeholder="描述" required>
+                            </div>
+                            <div class="col-md-2">
+                                <button type="submit" class="btn btn-danger w-100">添加</button>
+                            </div>
+                        </div>
+                    </form>
+
+                    <h6 class="text-muted mb-3 d-flex justify-content-between align-items-center">
+                        <span>近期开销记录 <span id="currentPageLabel"></span></span>
+                        <span class="badge bg-secondary" id="totalCountLabel"></span>
+                    </h6>
+                    <div class="table-responsive">
+                        <table class="table table-sm table-hover align-middle">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>时间</th><th>类别</th><th>描述</th><th class="text-end">金额</th><th class="text-center">操作</th>
+                                </tr>
+                            </thead>
+                            <tbody id="expenseListBody"></tbody>
+                        </table>
+                    </div>
+
+                    <nav class="mt-3">
+                        <ul class="pagination pagination-sm justify-content-center" id="paginationControls"></ul>
+                    </nav>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-12">
+            <!-- 资产分布卡片 -->
+            <div class="card mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <span>📊 资产分布与更新</span>
+                    <button id="recordAssetBtn" class="btn btn-sm btn-fancy btn-record-grad rounded-pill px-3">记录</button>
+                </div>
+                <div class="card-body">
+                    <div class="row align-items-center py-2">
+                        <div class="col-md-5 d-flex flex-column align-items-center justify-content-center mb-4 mb-md-0">
+                            <h6 class="text-muted mb-1">当前资产总额 (CNY)</h6>
+                            <div class="total-spend-text text-success mb-3" id="totalAssetsDisplay">¥ 0.00</div>
+                            <div style="width: 100%; max-width: 240px;"><canvas id="assetChart"></canvas></div>
+                        </div>
+                        <div class="col-md-7">
+                            <ul class="list-group list-group-flush" id="assetList"></ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 资产趋势卡片 -->
+            <div class="card mb-4">
+                <div class="card-header">📈 资产变化趋势</div>
+                <div class="card-body">
+                    <div class="py-2">
+                        <h6 class="text-muted mb-3 small">提示：点击图中的数据点可删除对应的历史记录</h6>
+                        <div style="height: 300px;"><canvas id="historyChart"></canvas></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="renderer.js"></script>
+</body>
+</html>

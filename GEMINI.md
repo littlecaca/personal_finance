@@ -1,61 +1,64 @@
-# GEMINI.md - Personal Finance & Asset Tracker
+# GEMINI.md - Personal Finance & Asset Tracker (Electron App)
 
-This project is a lightweight, local-first Personal Finance and Asset Tracker built with Python and Flask. It allows users to track their assets (stocks, crypto, etc.) and manage monthly budgets with expense logging.
+This project is a native, local-first Personal Finance and Asset Tracker built with **Electron** and **Node.js**. It provides a seamless desktop application experience, allowing users to track their assets and manage monthly budgets without relying on external servers or local Python environments.
 
 ## Project Overview
 
--   **Purpose:** Provide a private, offline way to track personal net worth and monthly spending.
--   **Tech Stack:** Python 3, Flask, HTML, Vanilla CSS.
--   **Architecture:** Simple Flask server serving a single-page-like experience with HTML templates. Data is persisted in local JSON files.
+-   **Purpose:** Provide a private, offline, and zero-configuration desktop app to track personal net worth and monthly spending.
+-   **Tech Stack:** Electron, Node.js, HTML, JavaScript (Vanilla), Bootstrap, Chart.js.
+-   **Architecture:** 
+    -   **Main Process (`main.js`):** Handles all file I/O operations (reading/writing local JSON files) and complex data processing logic (e.g., budget surplus rollover).
+    -   **Preload Script (`preload.js`):** Acts as a secure bridge (IPC) exposing the `financeAPI` to the renderer.
+    -   **Renderer Process (`src/`):** Purely client-side static HTML/JS. `renderer.js` fetches data via `financeAPI` and dynamically builds the DOM.
 
 ## Directory Structure
 
--   `app.py`: Main Flask application containing routes and data management logic.
+-   `package.json`: Node.js dependencies and Electron Forge build scripts.
+-   `main.js`: The Electron main process (Backend logic).
+-   `preload.js`: Secure IPC context bridge.
+-   `forge.config.js`: Configuration for generating the standalone `.exe`.
+-   `src/`: Frontend UI files.
+    -   `index.html` & `settings.html`: Static views.
+    -   `renderer.js`: Client-side logic for dynamic rendering and API calls.
 -   `data/`: Directory containing all JSON data files (ignored by Git).
     -   `config.json`: Global settings, asset categories, and budget category definitions.
     -   `metadata.json`: Tracks record counts and budget rollover history.
     -   `history.json`: Stores historical snapshots of total assets for the line chart.
     -   `YYYY-MM.json`: Monthly records for expenses and budget snapshots.
--   `templates/`: HTML templates for the UI.
-    -   `index.html`: Main dashboard for asset tracking and expense logging.
-    -   `settings.html`: Configuration page for categories and targets.
--   `install_*.sh/ps1`: Scripts to install the application as a background service.
 
 ## Building and Running
 
 ### Prerequisites
+-   Node.js (v18+)
+-   `npm install`
 
--   Python 3.7+
--   `pip install flask`
-
-### Running Locally
-
+### Development Mode
 ```bash
-python app.py
+npm start
 ```
-The application will be available at `http://localhost:5000`.
+This launches the Electron app locally with hot-reloading (if configured).
 
-### Running as a Service
-
--   **Linux:** Run `sudo ./install_linux.sh`. Manages via `systemctl status finance-tracker.service`.
--   **Windows:** Run `.\install_windows.ps1` in an elevated PowerShell. Manages via Task Scheduler.
+### Packaging for Distribution
+```bash
+npm run make
+```
+This uses Electron Forge to compile the application and bundle it into a standalone Windows `.exe` located in the `out/make/` directory. The generated installer handles everything, providing a true "double-click to install/run" experience.
 
 ## Data Model & Conventions
 
 ### Budget Rollover Logic
-The application implements a "Surplus Rollover" feature:
+The application implements a "Surplus Rollover" feature calculated entirely within `main.js`:
 -   Each category can optionally have `rollover: true`.
 -   If enabled, any remaining budget at the end of the month is added to that category's limit for the next month.
 -   If disabled, the surplus can be rolled over to a "Global Surplus Target" category if configured.
--   `check_and_process_surplus()` in `app.py` handles this logic when the index or settings page is loaded.
+-   `checkAndProcessSurplus()` in `main.js` handles this logic transparently when data is requested.
 
 ### Local-First Persistence
--   All data stays in the `data/` folder.
--   `load_json` and `save_json` are the primary utilities for I/O.
--   Monthly files ensure that historical data is segmented and easier to manage.
+-   All data stays in the local `data/` folder, ensuring complete privacy.
+-   The Node.js `fs` module is used synchronously for guaranteed data integrity during transactions.
 
 ## Development Guidelines
 
--   **Styling:** Use Vanilla CSS within the templates. Avoid adding heavy CSS frameworks to keep it lightweight.
--   **Routes:** API routes are prefixed with `/api/` (mostly) and usually redirect back to the main views.
--   **Data Integrity:** Be careful when modifying `app.py` logic related to `check_and_process_surplus`, as it iterates through historical months to ensure consistency.
+-   **Frontend:** Do not use server-side rendering (e.g., Jinja2). All UI updates must be done dynamically in `renderer.js`.
+-   **Security:** Never enable `nodeIntegration` in the `BrowserWindow`. All interactions with the file system MUST go through the `ipcMain` / `ipcRenderer` bridge defined in `preload.js`.
+-   **Data Migration:** If the data structure changes, ensure backward compatibility for users' existing JSON files in `main.js`.
