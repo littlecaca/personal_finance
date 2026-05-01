@@ -142,6 +142,11 @@ const renderDashboard = async (month, page) => {
     const totalAssets = Object.values(appData.assets).reduce((sum, val) => sum + parseFloat(val), 0);
     document.getElementById('totalAssetsDisplay').innerText = `¥ ${formatCurrency(totalAssets)}`;
     
+    // Version
+    if (appData.app_version) {
+        document.getElementById('appVersionLabel').innerText = `v${appData.app_version}`;
+    }
+    
     const assetList = document.getElementById('assetList');
     assetList.innerHTML = '';
     for (const [cat, amount] of Object.entries(appData.assets)) {
@@ -659,6 +664,45 @@ document.addEventListener('DOMContentLoaded', () => {
             const currentTheme = document.documentElement.getAttribute('data-bs-theme');
             applyTheme(currentTheme === 'dark' ? 'light' : 'dark');
         };
+    }
+
+    const checkUpdateBtn = document.getElementById('manualCheckUpdate');
+    if (checkUpdateBtn) {
+        checkUpdateBtn.onclick = async () => {
+            checkUpdateBtn.innerText = '(正在检查...)';
+            await window.financeAPI.checkUpdates();
+            setTimeout(() => {
+                checkUpdateBtn.innerText = '(检查更新)';
+            }, 3000);
+        };
+    }
+
+    // 自动更新监听
+    if (window.financeAPI.onUpdateDownloadStart) {
+        const progressBanner = document.getElementById('updateProgressBanner');
+        const progressBar = document.getElementById('updateProgressBar');
+        const percentLabel = document.getElementById('updatePercentLabel');
+
+        window.financeAPI.onUpdateDownloadStart(() => {
+            progressBanner.classList.remove('d-none');
+            progressBar.style.width = '0%';
+            percentLabel.innerText = '0%';
+        });
+
+        window.financeAPI.onUpdateDownloadProgress((percent) => {
+            const p = Math.floor(percent);
+            progressBar.style.width = `${p}%`;
+            percentLabel.innerText = `${p}%`;
+        });
+
+        window.financeAPI.onUpdateDownloadFinished(() => {
+            progressBanner.classList.add('d-none');
+        });
+
+        window.financeAPI.onUpdateError((msg) => {
+            progressBanner.classList.add('d-none');
+            console.error('Update UI error:', msg);
+        });
     }
     
     updateUI();

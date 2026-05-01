@@ -4,25 +4,82 @@ const fs = require('fs');
 const { autoUpdater } = require('electron-updater');
 
 // --- Auto Updater Configuration ---
-autoUpdater.autoDownload = true;
+autoUpdater.logger = console;
+autoUpdater.autoDownload = false; // 禁用自动下载，等待用户选择
+autoUpdater.forceDevUpdateConfig = true; 
+autoUpdater.disableDifferentialDownload = true;
+autoUpdater.disableWebInstaller = true;
+
+if (process.platform === 'win32') {
+  autoUpdater.updaterCacheDirName = 'finance-paper-updater';
+}
+
+autoUpdater.on('checking-for-update', () => {
+  console.log('Checking for update...');
+});
+
 autoUpdater.on('update-available', (info) => {
   console.log('Update available:', info.version);
+  dialog.showMessageBox({
+    type: 'question',
+    title: '发现新版本',
+    message: `发现新版本 ${info.version}。是否立即下载更新？`,
+    buttons: ['立即下载', '稍后提醒'],
+    defaultId: 0,
+    cancelId: 1
+  }).then((result) => {
+    if (result.response === 0) {
+      autoUpdater.downloadUpdate();
+      if (mainWindow) {
+        mainWindow.webContents.send('update-download-start');
+      }
+    }
+  });
 });
+
+autoUpdater.on('update-not-available', (info) => {
+  console.log('Update not available.');
+});
+
+autoUpdater.on('download-progress', (progressObj) => {
+  if (mainWindow) {
+    mainWindow.webContents.send('update-download-progress', progressObj.percent);
+  }
+});
+
 autoUpdater.on('update-downloaded', (info) => {
+  console.log('Update downloaded:', info.version);
+  if (mainWindow) {
+    mainWindow.webContents.send('update-download-finished');
+  }
   dialog.showMessageBox({
     type: 'info',
-    title: '更新已就绪',
-    message: `新版本 ${info.version} 已下载完成。是否立即安装并重启？`,
-    buttons: ['是', '否']
+    title: '下载完成',
+    message: `新版本 ${info.version} 已准备就绪。是否立即安装并重启？`,
+    buttons: ['立即安装', '稍后再说']
   }).then((result) => {
     if (result.response === 0) {
       autoUpdater.quitAndInstall();
     }
   });
 });
+
 autoUpdater.on('error', (err) => {
   console.error('Update error:', err);
+  if (mainWindow) {
+    mainWindow.webContents.send('update-error', err.message);
+  }
 });
+
+function checkUpdates() {
+  autoUpdater.setFeedURL({
+    provider: "generic",
+    url: "https://hk.gh-proxy.org/https://github.com/littlecaca/finance_paper/releases/latest/download/"
+  });
+  autoUpdater.checkForUpdates().catch(err => {
+    console.error('Check for updates failed:', err);
+  });
+}
 
 // --- Configuration & Constants ---
 const BASE_DATA_DIR = path.join(app.getPath('userData'), 'data');
@@ -46,6 +103,23 @@ const DEFAULT_CONFIG = {
 };
 
 // --- Utilities ---
+function cleanupUpdateCache() {
+  try {
+    const cacheDir = path.join(app.getPath('userData'), '..', 'finance-paper-updater');
+    const pendingDir = path.join(cacheDir, 'pending');
+    
+    if (fs.existsSync(pendingDir)) {
+      console.log('Cleaning up update cache:', pendingDir);
+      // 递归删除 pending 文件夹及其内容
+      fs.rmSync(pendingDir, { recursive: true, force: true });
+      // 重新创建一个空的，防止 updater 报错
+      fs.mkdirSync(pendingDir, { recursive: true });
+    }
+  } catch (err) {
+    console.error('Failed to cleanup update cache:', err);
+  }
+}
+
 function loadJson(filePath, defaultValue) {
   if (!fs.existsSync(filePath)) return defaultValue;
   try {
@@ -194,6 +268,7 @@ function getAppData(targetMonth, page = 1, perPage = 8) {
     "metadata": meta.counts,
     "current_month": targetMonth,
     "surplus_target": config.surplus_target || "",
+    "app_version": app.getVersion(),
     "pagination": { "current_page": page, "total_pages": totalPages, "total_count": totalCount, "has_next": page < totalPages, "has_prev": page > 1 }
   };
 }
@@ -380,9 +455,16 @@ ipcMain.handle('set-theme', async (event, theme) => {
     return { success: true };
 });
 
+ipcMain.handle('check-updates', async () => {
+    checkUpdates();
+    return { success: true };
+});
+
 // --- Window Management ---
+let mainWindow = null;
+
 function createWindow() {
-  const win = new BrowserWindow({
+  mainWindow = new BrowserWindow({
     width: 1280,
     height: 900,
     title: 'finance paper-金融手账',
@@ -396,12 +478,12 @@ function createWindow() {
     },
   });
 
-  win.once('ready-to-show', () => {
-    win.show();
+  mainWindow.once('ready-to-show', () => {
+    mainWindow.show();
   });
 
-  win.loadFile(path.join(__dirname, 'src', 'index.html'));
-  // win.webContents.openDevTools();
+  mainWindow.loadFile(path.join(__dirname, 'src', 'index.html'));
+  // mainWindow.webContents.openDevTools();
 }
 
 app.commandLine.appendSwitch('ignore-certificate-errors');
@@ -409,13 +491,8 @@ app.commandLine.appendSwitch('allow-insecure-localhost');
 
 app.whenReady().then(() => {
   createWindow();
-  
-  // 强制指定国内镜像加速地址
-  autoUpdater.setFeedURL({
-    provider: "generic",
-    url: "https://hk.gh-proxy.org/https://github.com/littlecaca/finance_paper/releases/latest/download/"
-  });
-  autoUpdater.checkForUpdatesAndNotify();
+  console.log('App started. Current version:', app.getVersion());
+  checkUpdates();
 
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) {

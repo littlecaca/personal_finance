@@ -14,5 +14,10 @@ contextBridge.exposeInMainWorld('financeAPI', {
   setSurplusTarget: (target) => ipcRenderer.invoke('set-surplus-target', target),
   setTheme: (theme) => ipcRenderer.invoke('set-theme', theme),
   reorderCategories: (newOrder) => ipcRenderer.invoke('reorder-categories', newOrder),
-  reorderAssetCategories: (newOrder) => ipcRenderer.invoke('reorder-asset-categories', newOrder)
+  reorderAssetCategories: (newOrder) => ipcRenderer.invoke('reorder-asset-categories', newOrder),
+  checkUpdates: () => ipcRenderer.invoke('check-updates'),
+  onUpdateDownloadStart: (callback) => ipcRenderer.on('update-download-start', () => callback()),
+  onUpdateDownloadProgress: (callback) => ipcRenderer.on('update-download-progress', (event, percent) => callback(percent)),
+  onUpdateDownloadFinished: (callback) => ipcRenderer.on('update-download-finished', () => callback()),
+  onUpdateError: (callback) => ipcRenderer.on('update-error', (event, message) => callback(message))
 });
