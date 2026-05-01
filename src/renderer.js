@@ -520,8 +520,116 @@ const updateHistoryChart = () => {
     });
 };
 
-// --- Theme ---
+// --- Theme & UI Logic ---
 document.addEventListener('DOMContentLoaded', () => {
+    // 1. 初始化猫咪 AI (CSS 交互增强版)
+    const cat = document.getElementById('petCat');
+    if (cat) {
+        console.log('Interactive Cat: Ready');
+        
+        const generalMessages = [
+            "喵~", "呼噜呼噜...", "资产在增长吗？", "今天也要记账喵", 
+            "摸摸头~", "不要乱花钱喵", "喵呜！", "我在盯着你呢",
+            "攒钱买小鱼干...", "我是财务小管家"
+        ];
+
+        const getTimeSensitiveMsg = () => {
+            const hour = new Date().getHours();
+            if (hour >= 5 && hour < 11) return ["早安喵~", "太阳晒屁股了喵", "又是新的一天喵！"];
+            if (hour >= 11 && hour < 13) return ["中午好喵", "记得按时吃午饭喵", "午餐不要太奢侈喵~"];
+            if (hour >= 13 && hour < 18) return ["下午好喵", "困了可以打个盹喵...", "来杯咖啡吗喵？"];
+            if (hour >= 18 && hour < 23) return ["晚上好喵", "准备休息了吗喵？", "今天过得怎么样喵？"];
+            return ["这么晚还不睡喵？", "熬夜对身体不好喵...", "月亮都睡了喵~"];
+        };
+        
+        let isSpeaking = false;
+        let lastInteractionTime = 0; // 初始为 0，防止刚开始就跟随鼠标
+
+        // 眼睛跟踪逻辑
+        document.addEventListener('mousemove', (e) => {
+            if (cat.classList.contains('sleeping')) return;
+            
+            // 只有交互后的 30 秒内会看鼠标
+            if (Date.now() - lastInteractionTime > 30000) {
+                // 回到中心
+                cat.style.setProperty('--pupil-x', '50%');
+                cat.style.setProperty('--pupil-y', '50%');
+                return;
+            }
+
+            const rect = cat.getBoundingClientRect();
+            const catX = rect.left + rect.width / 2;
+            const catY = rect.top + rect.height / 2;
+            
+            const angle = Math.atan2(e.clientY - catY, e.clientX - catX);
+            const distance = Math.min(3, Math.hypot(e.clientX - catX, e.clientY - catY) / 100);
+            
+            const px = 50 + Math.cos(angle) * distance * 10;
+            const py = 50 + Math.sin(angle) * distance * 10;
+            
+            cat.style.setProperty('--pupil-x', `${px}%`);
+            cat.style.setProperty('--pupil-y', `${py}%`);
+        });
+
+        // 自动闲聊逻辑
+        const autoChat = () => {
+            if (!isSpeaking && !cat.classList.contains('sleeping')) {
+                const timeMsgs = getTimeSensitiveMsg();
+                const allPool = [...generalMessages, ...timeMsgs];
+                const msg = allPool[Math.floor(Math.random() * allPool.length)];
+                
+                cat.style.setProperty('--cat-msg', `"${msg}"`);
+                cat.classList.add('meowing');
+                setTimeout(() => {
+                    if (!isSpeaking) cat.classList.remove('meowing');
+                }, 2500);
+            }
+            // 随机 15-45 秒闲聊一次
+            setTimeout(autoChat, 15000 + Math.random() * 30000);
+        };
+        setTimeout(autoChat, 5000);
+
+        // 交互逻辑
+        cat.onclick = async (e) => {
+            e.stopPropagation();
+            lastInteractionTime = Date.now();
+
+            if (cat.classList.contains('sleeping')) {
+                cat.classList.remove('sleeping');
+                const greetings = getTimeSensitiveMsg();
+                const greeting = greetings[0]; // 优先用第一个问候语
+                cat.style.setProperty('--cat-msg', `"${greeting}"`);
+                cat.classList.add('meowing');
+                setTimeout(() => cat.classList.remove('meowing'), 2500);
+                return;
+            }
+
+            if (isSpeaking) return;
+            isSpeaking = true;
+            
+            const timeMsgs = getTimeSensitiveMsg();
+            const allPool = [...generalMessages, ...timeMsgs];
+            const fullMsg = allPool[Math.floor(Math.random() * allPool.length)];
+            
+            const chunkSize = 8;
+            for (let i = 0; i < fullMsg.length; i += chunkSize) {
+                cat.style.setProperty('--cat-msg', `"${fullMsg.slice(i, i + chunkSize)}"`);
+                cat.classList.add('meowing');
+                await new Promise(r => setTimeout(r, 1600));
+                cat.classList.remove('meowing');
+                await new Promise(r => setTimeout(r, 200));
+            }
+            isSpeaking = false;
+        };
+
+        // 自动入睡逻辑
+        setInterval(() => {
+            if (!cat.classList.contains('sleeping') && Date.now() - lastInteractionTime > 60000) {
+                cat.classList.add('sleeping');
+            }
+        }, 10000);
+    }
+
     const applyTheme = (theme) => {
         document.documentElement.setAttribute('data-bs-theme', theme);
         localStorage.setItem('budget_tracker_theme', theme);

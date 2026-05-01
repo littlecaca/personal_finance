@@ -138,6 +138,351 @@ body::before {
 
 .theme-toggle-wrapper { position: absolute; top: 20px; right: 20px; z-index: 1000; }
 
+/* --- High-Fidelity Interactive CSS Cat --- */
+.cat-wrapper {
+    position: absolute;
+    top: 10px;
+    left: 40px;
+    z-index: 1000;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    filter: drop-shadow(0 8px 16px rgba(0,0,0,0.2));
+    transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.cat-wrapper:hover { transform: scale(1.03); }
+
+/* Head - Refined with Markings */
+.cat-head {
+    width: 62px;
+    height: 52px;
+    background: 
+        /* Tabby 'M' Marking on Forehead */
+        radial-gradient(ellipse at 50% 10%, rgba(216, 123, 20, 0.5) 0%, transparent 70%),
+        radial-gradient(circle at 35% 35%, #ffdb4d, #f5a623);
+    border-radius: 50% 50% 45% 45% / 60% 60% 40% 40%;
+    position: relative;
+    z-index: 10;
+    margin-bottom: -18px;
+    box-shadow: inset 0 2px 4px rgba(255,255,255,0.3);
+}
+
+[data-bs-theme="dark"] .cat-head {
+    background: radial-gradient(circle at 35% 35%, #ffd700, #b8860b);
+}
+
+/* Tabby 'M' Pattern */
+.cat-marking-m {
+    position: absolute;
+    top: 6px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 14px;
+    height: 8px;
+    border: 2px solid rgba(216, 123, 20, 0.6);
+    border-top: 0;
+    border-radius: 0 0 4px 4px;
+    opacity: 0.8;
+}
+.cat-marking-m::before, .cat-marking-m::after {
+    content: ''; position: absolute; top: -4px; width: 6px; height: 6px;
+    border: 2px solid rgba(216, 123, 20, 0.6); border-bottom: 0; border-radius: 4px 4px 0 0;
+}
+.cat-marking-m::before { left: -4px; }
+.cat-marking-m::after { right: -4px; }
+
+/* Natural Ears - Single smooth curve, no bow-tie look */
+.cat-ear {
+    width: 26px;
+    height: 32px;
+    background: #f5a623;
+    position: absolute;
+    top: -14px;
+    z-index: -1;
+    transition: transform 0.3s ease;
+}
+[data-bs-theme="dark"] .cat-ear { background: #b8860b; }
+
+.cat-ear.left {
+    left: -2px;
+    border-radius: 100% 20% 0 0; /* Natural feline peak */
+    transform: rotate(-25deg);
+}
+
+.cat-ear.right {
+    right: -2px;
+    border-radius: 20% 100% 0 0;
+    transform: rotate(25deg);
+}
+
+.cat-ear::after {
+    content: '';
+    position: absolute;
+    top: 6px;
+    left: 4px;
+    width: 14px;
+    height: 22px;
+    background: #ffb7b7;
+    border-radius: inherit;
+    opacity: 0.5;
+}
+
+/* Eyes & Real-time Pupils */
+.cat-eyes {
+    display: flex;
+    justify-content: space-between;
+    width: 36px;
+    margin: 20px auto 0;
+}
+.cat-eye {
+    width: 13px;
+    height: 13px;
+    background: #fff;
+    border-radius: 50%;
+    position: relative;
+    overflow: hidden;
+    box-shadow: inset 0 2px 4px rgba(0,0,0,0.1), 0 1px 1px rgba(255,255,255,0.5);
+}
+.cat-pupil {
+    width: 7px;
+    height: 7px;
+    background: radial-gradient(circle at 30% 30%, #444, #1a1817);
+    border-radius: 50%;
+    position: absolute;
+    left: var(--pupil-x, 50%);
+    top: var(--pupil-y, 50%);
+    transform: translate(-50%, -50%);
+    transition: left 0.1s ease, top 0.1s ease;
+}
+
+/* Muzzle (Nose & Mouth) with Refined Individual Whiskers */
+.cat-muzzle {
+    position: absolute;
+    bottom: 8px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 24px;
+    height: 14px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.cat-whiskers {
+    position: absolute;
+    top: 4px; /* Lowered from 0 */
+    width: 50px;
+    height: 20px;
+    pointer-events: none;
+}
+
+.cat-whiskers.left { right: 18px; }
+.cat-whiskers.right { left: 18px; }
+
+.cat-whisker {
+    position: absolute;
+    width: 45px;
+    height: 15px;
+    background: transparent;
+    border-top: 1px solid rgba(0, 0, 0, 0.6);
+    pointer-events: none;
+}
+
+/* Left side whiskers with natural fan angles */
+.cat-whiskers.left .cat-whisker {
+    right: 0;
+    border-radius: 50% 50% 0 0;
+    transform-origin: right center;
+}
+.cat-whiskers.left .w1 { transform: rotate(18deg) translateY(-3px); width: 42px; opacity: 0.7; }
+.cat-whiskers.left .w2 { transform: rotate(5deg); width: 48px; }
+.cat-whiskers.left .w3 { transform: rotate(-8deg) translateY(3px); width: 40px; opacity: 0.8; }
+
+/* Right side whiskers with natural fan angles */
+.cat-whiskers.right .cat-whisker {
+    left: 0;
+    border-radius: 50% 50% 0 0;
+    transform-origin: left center;
+}
+.cat-whiskers.right .w1 { transform: rotate(-18deg) translateY(-3px); width: 42px; opacity: 0.7; }
+.cat-whiskers.right .w2 { transform: rotate(-5deg); width: 48px; }
+.cat-whiskers.right .w3 { transform: rotate(8deg) translateY(3px); width: 40px; opacity: 0.8; }
+
+.cat-nose {
+    width: 8px;
+    height: 5px;
+    background: #634e34; /* Warm chocolate brown */
+    border-radius: 40% 40% 50% 50%;
+    margin-bottom: 1px;
+    box-shadow: 0 1px 1px rgba(0,0,0,0.1);
+    z-index: 12;
+}
+[data-bs-theme="dark"] .cat-nose { background: #3d2b1f; }
+
+/* Body with Fur Texture & Chest Patch - Refined Horizontal Stripes */
+.cat-body {
+    width: 82px;
+    height: 54px;
+    background: 
+        /* Chest/Belly Patch */
+        radial-gradient(ellipse at 50% 90%, #fff9eb 0%, transparent 75%),
+        /* Subtle Horizontal Belly Stripes */
+        repeating-linear-gradient(to bottom, transparent, transparent 10px, rgba(216, 123, 20, 0.22) 10px, rgba(216, 123, 20, 0.22) 13px),
+        /* Tabby Stripes (Body Sides) */
+        repeating-linear-gradient(115deg, transparent, transparent 18px, rgba(216, 123, 20, 0.2) 18px, rgba(216, 123, 20, 0.2) 26px),
+        #f5a623;
+    border-radius: 50% 50% 35% 35% / 55% 55% 45% 45%;
+    position: relative;
+    z-index: 5;
+    box-shadow: inset 0 -6px 15px rgba(0,0,0,0.15);
+    animation: breathing 4s infinite ease-in-out;
+}
+[data-bs-theme="dark"] .cat-body { 
+    background: 
+        radial-gradient(ellipse at 50% 90%, rgba(255,255,255,0.1) 0%, transparent 75%), 
+        repeating-linear-gradient(to bottom, transparent, transparent 10px, rgba(0, 0, 0, 0.15) 10px, rgba(0, 0, 0, 0.15) 13px),
+        repeating-linear-gradient(115deg, transparent, transparent 18px, rgba(0, 0, 0, 0.1) 18px, rgba(0, 0, 0, 0.1) 26px),
+        #b8860b; 
+}
+
+/* Seamless Front Legs Integration - Added Socket Shadow */
+.cat-front-legs {
+    display: flex;
+    justify-content: space-between;
+    width: 48px;
+    position: absolute;
+    bottom: -3px; 
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 6;
+}
+.cat-leg {
+    width: 15px;
+    height: 22px;
+    background: #f5a623;
+    border-radius: 6px 6px 12px 12px;
+    /* Inset shadows to create muscle depth */
+    box-shadow: 
+        inset 1px 4px 4px rgba(0,0,0,0.1),
+        inset -1px -4px 6px rgba(255,255,255,0.2),
+        0 2px 4px rgba(0,0,0,0.1);
+    border-top: none;
+    position: relative;
+    overflow: hidden;
+}
+/* Socket Shadow where leg meets body */
+.cat-leg::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; height: 8px;
+    background: linear-gradient(to bottom, rgba(0,0,0,0.15), transparent);
+    filter: blur(1px);
+    pointer-events: none;
+}
+[data-bs-theme="dark"] .cat-leg { background: #b8860b; }
+
+/* --- Seamless SVG Tail System --- */
+.cat-tail {
+    position: absolute;
+    right: -25px;         /* Emerge from hip area */
+    bottom: 8px;
+    width: 40px;
+    height: 60px;
+    transform-origin: bottom left;
+    z-index: 4;           /* Behind body for perfect blending */
+    animation: svg-tail-wag 4s infinite ease-in-out;
+    pointer-events: none;
+}
+
+#tailPath {
+    stroke: #f5a623;      /* Base color */
+    transition: stroke 0.5s ease;
+}
+
+[data-bs-theme="dark"] #tailPath {
+    stroke: #b8860b;      /* Dark mode color */
+}
+
+@keyframes svg-tail-wag {
+    0%, 100% { 
+        transform: rotate(5deg) scaleX(1); 
+    }
+    50% { 
+        transform: rotate(25deg) scaleX(1.05); 
+    }
+}
+
+/* Sleeping/Waking States */
+.cat-wrapper.sleeping .cat-eye {
+    height: 2px;
+    background: #d4a373;
+    margin-top: 6px;
+    box-shadow: none;
+}
+.cat-wrapper.sleeping .cat-pupil { display: none; }
+.cat-wrapper.sleeping .cat-body { animation-duration: 5s; }
+
+@keyframes breathing {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.025, 0.975); }
+}
+
+/* Dialogue Bubble Re-styled */
+.cat-wrapper::after {
+    content: var(--cat-msg, "");
+    position: absolute;
+    top: -25px;
+    left: 75px;
+    transform: scale(0);
+    transform-origin: bottom left;
+    background: rgba(255, 255, 255, 0.9);
+    backdrop-filter: blur(8px);
+    color: #4a3f35;
+    padding: 8px 18px;
+    border-radius: 20px 20px 20px 4px;
+    font-size: 13px;
+    font-weight: 600;
+    white-space: nowrap;
+    transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    pointer-events: none;
+    z-index: 1001;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+    border: 1px solid rgba(255,255,255,0.5);
+}
+[data-bs-theme="dark"] .cat-wrapper::after {
+    background: rgba(40, 40, 40, 0.9);
+    color: #eae0d5;
+    border-color: rgba(255,255,255,0.1);
+}
+.cat-wrapper.meowing::after { transform: scale(1); }
+.cat-wrapper:hover:not(.meowing)::after { content: "喵~"; transform: scale(1); }
+
+/* Dialogue Bubble */
+.cat-wrapper::after {
+    content: var(--cat-msg, "");
+    position: absolute;
+    top: -20px;
+    left: 65px;
+    transform: scale(0);
+    transform-origin: bottom left;
+    background: rgba(0,0,0,0.8);
+    backdrop-filter: blur(4px);
+    color: white;
+    padding: 6px 14px;
+    border-radius: 18px 18px 18px 4px;
+    font-size: 13px;
+    white-space: nowrap;
+    transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    pointer-events: none;
+    z-index: 1001;
+}
+.cat-wrapper.meowing::after { transform: scale(1); }
+
+.cat-wrapper.meowing::after { transform: scale(1); }
+.cat-wrapper:hover:not(.meowing)::after { content: "喵~"; transform: scale(1); }
+
 /* Inputs and Selects styling */
 .form-control, .form-select {
     background-color: rgba(255, 255, 255, 0.5);

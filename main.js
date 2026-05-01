@@ -409,6 +409,12 @@ app.commandLine.appendSwitch('allow-insecure-localhost');
 
 app.whenReady().then(() => {
   createWindow();
+  
+  // 强制指定国内镜像加速地址
+  autoUpdater.setFeedURL({
+    provider: "generic",
+    url: "https://hk.gh-proxy.org/https://github.com/littlecaca/finance_paper/releases/latest/download/"
+  });
   autoUpdater.checkForUpdatesAndNotify();
 
   app.on('activate', () => {

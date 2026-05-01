@@ -1,7 +1,7 @@
 {
   "name": "finance-paper",
   "productName": "finance paper",
-  "version": "1.0.0",
+  "version": "1.0.2",
   "description": "一个基于 Electron 的完全离线个人财务追踪桌面应用。本地运行，数据持久化于本地，无数据上传风险。",
   "main": "main.js",
   "scripts": {
@@ -13,10 +13,15 @@
   "build": {
     "appId": "com.finance.paper",
     "productName": "Finance Paper",
+    "releaseInfo": {
+      "releaseNotesFile": "release-notes.md"
+    },
     "publish": [
       {
-        "provider": "generic",
-        "url": "https://ghp.ci/https://github.com/littlecaca/finance_paper/releases/latest/download/"
+        "provider": "github",
+        "owner": "littlecaca",
+        "repo": "finance_paper",
+        "releaseType": "release"
       }
     ],
     "directories": {
