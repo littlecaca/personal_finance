@@ -1,6 +1,28 @@
-const { app, BrowserWindow, ipcMain } = require('electron');
+const { app, BrowserWindow, ipcMain, dialog } = require('electron');
 const path = require('path');
 const fs = require('fs');
+const { autoUpdater } = require('electron-updater');
+
+// --- Auto Updater Configuration ---
+autoUpdater.autoDownload = true;
+autoUpdater.on('update-available', (info) => {
+  console.log('Update available:', info.version);
+});
+autoUpdater.on('update-downloaded', (info) => {
+  dialog.showMessageBox({
+    type: 'info',
+    title: '更新已就绪',
+    message: `新版本 ${info.version} 已下载完成。是否立即安装并重启？`,
+    buttons: ['是', '否']
+  }).then((result) => {
+    if (result.response === 0) {
+      autoUpdater.quitAndInstall();
+    }
+  });
+});
+autoUpdater.on('error', (err) => {
+  console.error('Update error:', err);
+});
 
 // --- Configuration & Constants ---
 const BASE_DATA_DIR = path.join(app.getPath('userData'), 'data');
@@ -387,6 +409,7 @@ app.commandLine.appendSwitch('allow-insecure-localhost');
 
 app.whenReady().then(() => {
   createWindow();
+  autoUpdater.checkForUpdatesAndNotify();
 
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) {

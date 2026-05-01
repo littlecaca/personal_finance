@@ -13,10 +13,9 @@ This project is a native, local-first Personal Finance and Asset Tracker built w
 
 ## Directory Structure
 
--   `package.json`: Node.js dependencies and Electron Forge build scripts.
+-   `package.json`: Node.js dependencies and Electron Builder build scripts.
 -   `main.js`: The Electron main process (Backend logic).
 -   `preload.js`: Secure IPC context bridge.
--   `forge.config.js`: Configuration for generating the standalone `.exe`.
 -   `src/`: Frontend UI files.
     -   `index.html` & `settings.html`: Static views.
     -   `renderer.js`: Client-side logic for dynamic rendering and API calls.
@@ -36,13 +35,19 @@ This project is a native, local-first Personal Finance and Asset Tracker built w
 ```bash
 npm start
 ```
-This launches the Electron app locally with hot-reloading (if configured).
+This launches the Electron app locally.
 
 ### Packaging for Distribution
 ```bash
-npm run make
+npm run dist
 ```
-This uses Electron Forge to compile the application and bundle it into a standalone Windows `.exe` located in the `out/make/` directory. The generated installer handles everything, providing a true "double-click to install/run" experience.
+This uses Electron Builder to compile the application and bundle it into a standalone Windows `.exe` located in the `dist/` directory. The generated installer handles everything.
+
+### Publishing Updates
+```bash
+npm run publish
+```
+This builds the app and publishes the release to GitHub. The app will automatically check for updates on startup using `electron-updater`.
 
 ## Data Model & Conventions
 

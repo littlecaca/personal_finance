@@ -7,11 +7,18 @@
   "scripts": {
     "start": "electron .",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dist": "electron-builder"
+    "dist": "electron-builder",
+    "publish": "electron-builder --publish always"
   },
   "build": {
     "appId": "com.finance.paper",
     "productName": "Finance Paper",
+    "publish": [
+      {
+        "provider": "generic",
+        "url": "https://ghp.ci/https://github.com/littlecaca/finance_paper/releases/latest/download/"
+      }
+    ],
     "directories": {
       "output": "dist"
     },
@@ -64,5 +71,8 @@
     "electron-builder": "^26.8.1",
     "jimp": "^1.6.1",
     "png-to-ico": "^3.0.1"
+  },
+  "dependencies": {
+    "electron-updater": "^6.8.3"
   }
 }
